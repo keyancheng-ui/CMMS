@@ -51,6 +51,7 @@ class App:
         self.tmp_tab = ttk.Frame(nb)
         self.loc_tab = ttk.Frame(nb)
         self.rep_tab = ttk.Frame(nb)
+        self.sql_tab = ttk.Frame(nb)
         nb.add(self.emp_tab, text="Employees")
         nb.add(self.sup_tab, text="Supervision")
         nb.add(self.act_tab, text="Activities")
@@ -58,6 +59,7 @@ class App:
         nb.add(self.tmp_tab, text="Temp Employees")
         nb.add(self.loc_tab, text="Locations")
         nb.add(self.rep_tab, text="Reports")
+        nb.add(self.sql_tab, text="SQL")
         self.build_employees()
         self.build_supervision()
         self.build_activities()
@@ -65,6 +67,7 @@ class App:
         self.build_temp_employees()
         self.build_locations()
         self.build_reports()
+        self.build_sql()
 
     def apply_env(self):
         os.environ["MYSQL_HOST"] = self.host.get()
@@ -106,52 +109,51 @@ class App:
 
     def build_employees(self):
         f = self.emp_tab
-        self.emp_tv = self.build_tree(f, ["id", "ssn", "name", "gender", "level"])
+        self.emp_tv = self.build_tree(f, ["ssn", "name", "level", "supervisor_ssn", "supervisee_ssn"])
         ttk.Button(f, text="List", command=self.list_employees).grid(row=1, column=0, pady=6)
-        self.emp_ssn = tk.StringVar(); self.emp_name = tk.StringVar(); self.emp_gender = tk.StringVar(); self.emp_level = tk.StringVar()
+        self.emp_ssn = tk.StringVar(); self.emp_name = tk.StringVar(); self.emp_level = tk.StringVar()
         ttk.Entry(f, textvariable=self.emp_ssn, width=10).grid(row=1, column=1)
         ttk.Entry(f, textvariable=self.emp_name, width=12).grid(row=1, column=2)
-        ttk.Entry(f, textvariable=self.emp_gender, width=8).grid(row=1, column=3)
-        ttk.Entry(f, textvariable=self.emp_level, width=10).grid(row=1, column=4)
-        ttk.Button(f, text="Add", command=self.add_employee).grid(row=1, column=5)
+        ttk.Entry(f, textvariable=self.emp_level, width=10).grid(row=1, column=3)
+        ttk.Button(f, text="Add", command=self.add_employee).grid(row=1, column=4)
 
     def list_employees(self):
         conn = self.get_conn()
         rows = EmployeeService(EmployeeDAO(conn)).list_all()
         for i in self.emp_tv.get_children(): self.emp_tv.delete(i)
-        for r in rows: self.emp_tv.insert("", tk.END, values=(r.get("id"), r.get("ssn"), r.get("name"), r.get("gender"), r.get("level")))
+        for r in rows: self.emp_tv.insert("", tk.END, values=(r.get("ssn"), r.get("name"), r.get("level"), r.get("supervisor_ssn"), r.get("supervisee_ssn")))
         conn.close()
 
     def add_employee(self):
         conn = self.get_conn()
-        EmployeeService(EmployeeDAO(conn)).add(self.emp_ssn.get(), self.emp_name.get(), self.emp_gender.get(), self.emp_level.get())
+        EmployeeService(EmployeeDAO(conn)).add(self.emp_ssn.get(), self.emp_name.get(), self.emp_level.get())
         conn.close()
         self.list_employees()
 
     def build_supervision(self):
         f = self.sup_tab
-        ttk.Label(f, text="Employee ID").grid(row=0, column=0, sticky="w")
-        ttk.Label(f, text="Supervisor ID").grid(row=0, column=2, sticky="w")
+        ttk.Label(f, text="Employee SSN").grid(row=0, column=0, sticky="w")
+        ttk.Label(f, text="Supervisor SSN").grid(row=0, column=2, sticky="w")
         self.sup_eid = tk.StringVar(); self.sup_sid = tk.StringVar()
-        ttk.Entry(f, textvariable=self.sup_eid, width=10).grid(row=0, column=1)
-        ttk.Entry(f, textvariable=self.sup_sid, width=10).grid(row=0, column=3)
+        ttk.Entry(f, textvariable=self.sup_eid, width=12).grid(row=0, column=1)
+        ttk.Entry(f, textvariable=self.sup_sid, width=12).grid(row=0, column=3)
         ttk.Button(f, text="Set", command=self.set_supervision).grid(row=0, column=4)
         ttk.Label(f, text="List Subordinates of").grid(row=1, column=0, sticky="w")
         self.sup_q = tk.StringVar()
         ttk.Entry(f, textvariable=self.sup_q, width=10).grid(row=1, column=1)
         ttk.Button(f, text="List", command=self.list_subordinates).grid(row=1, column=2)
-        self.sub_tv = self.build_tree(f, ["employee_id"]) 
+        self.sub_tv = self.build_tree(f, ["employee_ssn"]) 
 
     def set_supervision(self):
         conn = self.get_conn()
-        SupervisionService(SupervisionDAO(conn)).set_supervision(int(self.sup_eid.get()), int(self.sup_sid.get()))
+        SupervisionService(SupervisionDAO(conn)).set_supervision(self.sup_eid.get(), self.sup_sid.get())
         conn.close()
 
     def list_subordinates(self):
         conn = self.get_conn()
-        rows = SupervisionService(SupervisionDAO(conn)).list_subordinates(int(self.sup_q.get()))
+        rows = SupervisionService(SupervisionDAO(conn)).list_subordinates(self.sup_q.get())
         for i in self.sub_tv.get_children(): self.sub_tv.delete(i)
-        for r in rows: self.sub_tv.insert("", tk.END, values=(r.get("employee_id"),))
+        for r in rows: self.sub_tv.insert("", tk.END, values=(r.get("employee_ssn"),))
         conn.close()
 
     def build_activities(self):
@@ -170,20 +172,16 @@ class App:
         ttk.Entry(f, textvariable=self.adesc, width=20).grid(row=2, column=3, columnspan=2)
         ttk.Checkbutton(f, text="Chemical", variable=self.areq).grid(row=2, column=5)
         ttk.Button(f, text="Add", command=self.add_activity).grid(row=3, column=5)
-        ttk.Label(f, text="Employee ID").grid(row=3, column=0)
+        ttk.Label(f, text="Employee SSN").grid(row=3, column=0)
         self.aeid = tk.StringVar()
-        ttk.Entry(f, textvariable=self.aeid, width=8).grid(row=3, column=1)
+        ttk.Entry(f, textvariable=self.aeid, width=12).grid(row=3, column=1)
         ttk.Button(f, text="List", command=self.list_activities).grid(row=3, column=2)
-        ttk.Label(f, text="Assign Emp: AID, EID").grid(row=4, column=0)
+        ttk.Label(f, text="Assign Emp: AID, ESSN").grid(row=4, column=0)
         self.as_aid = tk.StringVar(); self.as_eid = tk.StringVar()
         ttk.Entry(f, textvariable=self.as_aid, width=8).grid(row=4, column=1)
-        ttk.Entry(f, textvariable=self.as_eid, width=8).grid(row=4, column=2)
+        ttk.Entry(f, textvariable=self.as_eid, width=12).grid(row=4, column=2)
         ttk.Button(f, text="Assign", command=self.assign_emp).grid(row=4, column=3)
-        ttk.Label(f, text="Assign Con: AID, CID").grid(row=5, column=0)
-        self.as_caid = tk.StringVar(); self.as_cid = tk.StringVar()
-        ttk.Entry(f, textvariable=self.as_caid, width=8).grid(row=5, column=1)
-        ttk.Entry(f, textvariable=self.as_cid, width=8).grid(row=5, column=2)
-        ttk.Button(f, text="Assign", command=self.assign_con).grid(row=5, column=3)
+        ttk.Label(f, text="Assign Con: deprecated").grid(row=5, column=0)
 
     def add_activity(self):
         conn = self.get_conn()
@@ -192,68 +190,71 @@ class App:
 
     def list_activities(self):
         conn = self.get_conn()
-        rows = ActivityService(ActivityDAO(conn)).list_by_employee(int(self.aeid.get()))
+        rows = ActivityService(ActivityDAO(conn)).list_by_employee(self.aeid.get())
         for i in self.act_tv.get_children(): self.act_tv.delete(i)
         for r in rows: self.act_tv.insert("", tk.END, values=(r.get("id"), r.get("activity_date"), r.get("activity_type"), r.get("description")))
         conn.close()
 
     def assign_emp(self):
         conn = self.get_conn()
-        ActivityDAO(conn).assign_employee(int(self.as_aid.get()), int(self.as_eid.get()))
+        ActivityDAO(conn).assign_employee(int(self.as_aid.get()), self.as_eid.get())
         conn.close()
 
     def assign_con(self):
-        conn = self.get_conn()
-        ActivityDAO(conn).assign_contractor(int(self.as_caid.get()), int(self.as_cid.get()))
-        conn.close()
+        pass
 
     def build_contractors(self):
         f = self.con_tab
-        self.con_tv = self.build_tree(f, ["id", "ssn", "name", "company"]) 
+        self.con_tv = self.build_tree(f, ["name"]) 
         ttk.Button(f, text="List", command=self.list_contractors).grid(row=1, column=0)
-        self.con_ssn = tk.StringVar(); self.con_name = tk.StringVar(); self.con_comp = tk.StringVar()
-        ttk.Entry(f, textvariable=self.con_ssn, width=10).grid(row=1, column=1)
-        ttk.Entry(f, textvariable=self.con_name, width=12).grid(row=1, column=2)
-        ttk.Entry(f, textvariable=self.con_comp, width=12).grid(row=1, column=3)
-        ttk.Button(f, text="Add", command=self.add_contractor).grid(row=1, column=4)
+        self.con_name = tk.StringVar()
+        ttk.Entry(f, textvariable=self.con_name, width=12).grid(row=1, column=1)
+        ttk.Button(f, text="Add Company", command=self.add_contractor).grid(row=1, column=2)
 
     def list_contractors(self):
         conn = self.get_conn()
         rows = ContractorService(ContractorDAO(conn)).list_all()
         for i in self.con_tv.get_children(): self.con_tv.delete(i)
-        for r in rows: self.con_tv.insert("", tk.END, values=(r.get("id"), r.get("ssn"), r.get("name"), r.get("company")))
+        for r in rows: self.con_tv.insert("", tk.END, values=(r.get("name"),))
         conn.close()
 
     def add_contractor(self):
         conn = self.get_conn()
-        ContractorService(ContractorDAO(conn)).add(self.con_ssn.get(), self.con_name.get(), self.con_comp.get())
+        ContractorService(ContractorDAO(conn)).add(self.con_name.get())
         conn.close()
         self.list_contractors()
 
     def build_temp_employees(self):
         f = self.tmp_tab
-        self.tmp_tv = self.build_tree(f, ["id", "ssn", "name", "gender", "company_id", "supervisor_id"]) 
+        self.tmp_tv = self.build_tree(f, ["ssn", "name", "company"]) 
         ttk.Button(f, text="List", command=self.list_temp).grid(row=1, column=0)
-        self.tmp_ssn = tk.StringVar(); self.tmp_name = tk.StringVar(); self.tmp_gender = tk.StringVar(); self.tmp_cid = tk.StringVar(); self.tmp_sid = tk.StringVar()
+        self.tmp_ssn = tk.StringVar(); self.tmp_name = tk.StringVar(); self.tmp_company = tk.StringVar(); self.tmp_sup = tk.StringVar()
         ttk.Entry(f, textvariable=self.tmp_ssn, width=10).grid(row=1, column=1)
         ttk.Entry(f, textvariable=self.tmp_name, width=12).grid(row=1, column=2)
-        ttk.Entry(f, textvariable=self.tmp_gender, width=8).grid(row=1, column=3)
-        ttk.Entry(f, textvariable=self.tmp_cid, width=8).grid(row=1, column=4)
-        ttk.Entry(f, textvariable=self.tmp_sid, width=8).grid(row=1, column=5)
-        ttk.Button(f, text="Add", command=self.add_temp).grid(row=1, column=6)
+        ttk.Entry(f, textvariable=self.tmp_company, width=12).grid(row=1, column=3)
+        ttk.Button(f, text="Add", command=self.add_temp).grid(row=1, column=4)
+        ttk.Label(f, text="Set Supervisor: TSSN, SSSN").grid(row=2, column=0)
+        ttk.Entry(f, textvariable=self.tmp_ssn, width=10).grid(row=2, column=1)
+        ttk.Entry(f, textvariable=self.tmp_sup, width=10).grid(row=2, column=2)
+        ttk.Button(f, text="Set", command=self.set_temp_supervision).grid(row=2, column=3)
 
     def list_temp(self):
         conn = self.get_conn()
         rows = TempEmployeeService(TempEmployeeDAO(conn)).list_all()
         for i in self.tmp_tv.get_children(): self.tmp_tv.delete(i)
-        for r in rows: self.tmp_tv.insert("", tk.END, values=(r.get("id"), r.get("ssn"), r.get("name"), r.get("gender"), r.get("company_id"), r.get("supervisor_id")))
+        for r in rows: self.tmp_tv.insert("", tk.END, values=(r.get("ssn"), r.get("name"), r.get("company")))
         conn.close()
 
     def add_temp(self):
         conn = self.get_conn()
-        TempEmployeeService(TempEmployeeDAO(conn)).add(self.tmp_ssn.get(), self.tmp_name.get(), self.tmp_gender.get(), int(self.tmp_cid.get()), int(self.tmp_sid.get()))
+        TempEmployeeService(TempEmployeeDAO(conn)).add(self.tmp_ssn.get(), self.tmp_name.get(), self.tmp_company.get())
         conn.close()
         self.list_temp()
+
+    def set_temp_supervision(self):
+        conn = self.get_conn()
+        SupervisionService(SupervisionDAO(conn)).set_temp_supervision(self.tmp_ssn.get(), self.tmp_sup.get())
+        conn.close()
 
     def build_locations(self):
         f = self.loc_tab
@@ -280,15 +281,78 @@ class App:
 
     def build_reports(self):
         f = self.rep_tab
-        self.rep_tv = self.build_tree(f, ["employee_id", "employee_name", "activity_count"]) 
+        self.rep_tv = self.build_tree(f, ["employee_ssn", "employee_name", "activity_count"]) 
         ttk.Button(f, text="Employee Activity", command=self.rep_employee_activity).grid(row=1, column=0)
+        ttk.Label(f, text="Type report: start, end").grid(row=1, column=1)
+        self.rep_st = tk.StringVar(); self.rep_ed = tk.StringVar()
+        ttk.Entry(f, textvariable=self.rep_st, width=10).grid(row=1, column=2)
+        ttk.Entry(f, textvariable=self.rep_ed, width=10).grid(row=1, column=3)
+        ttk.Button(f, text="Activity Type", command=self.rep_activity_type).grid(row=1, column=4)
+
+        ttk.Label(f, text="Building, start, end").grid(row=2, column=0)
+        self.rep_b = tk.StringVar(); self.rep_bst = tk.StringVar(); self.rep_bed = tk.StringVar()
+        ttk.Entry(f, textvariable=self.rep_b, width=10).grid(row=2, column=1)
+        ttk.Entry(f, textvariable=self.rep_bst, width=10).grid(row=2, column=2)
+        ttk.Entry(f, textvariable=self.rep_bed, width=10).grid(row=2, column=3)
+        ttk.Button(f, text="Building Activity", command=self.rep_building_activity).grid(row=2, column=4)
+        ttk.Button(f, text="Chemical Usage", command=self.rep_chemical_usage).grid(row=3, column=4)
 
     def rep_employee_activity(self):
         conn = self.get_conn()
         rows = ReportService(ReportDAO(conn)).employee_activity_summary()
         for i in self.rep_tv.get_children(): self.rep_tv.delete(i)
-        for r in rows: self.rep_tv.insert("", tk.END, values=(r.get("employee_id"), r.get("employee_name"), r.get("activity_count")))
+        for r in rows: self.rep_tv.insert("", tk.END, values=(r.get("employee_ssn"), r.get("employee_name"), r.get("activity_count")))
         conn.close()
+
+    def rep_activity_type(self):
+        conn = self.get_conn()
+        rows = ReportDAO(conn).activity_type_employee_count(self.rep_st.get(), self.rep_ed.get())
+        for i in self.rep_tv.get_children(): self.rep_tv.delete(i)
+        for r in rows: self.rep_tv.insert("", tk.END, values=("-", r.get("type"), r.get("employees")))
+        conn.close()
+
+    def rep_building_activity(self):
+        conn = self.get_conn()
+        rows = ReportDAO(conn).building_activity_status(self.rep_b.get(), self.rep_bst.get(), self.rep_bed.get())
+        for i in self.rep_tv.get_children(): self.rep_tv.delete(i)
+        for r in rows: self.rep_tv.insert("", tk.END, values=(r.get("building"), r.get("type"), r.get("activity_count")))
+        conn.close()
+
+    def rep_chemical_usage(self):
+        conn = self.get_conn()
+        rows = ReportDAO(conn).chemical_usage(self.rep_b.get(), self.rep_bst.get(), self.rep_bed.get())
+        for i in self.rep_tv.get_children(): self.rep_tv.delete(i)
+        for r in rows: self.rep_tv.insert("", tk.END, values=(r.get("activity_id"), r.get("activity_date"), r.get("requires_chemical")))
+        conn.close()
+
+    def build_sql(self):
+        f = self.sql_tab
+        self.sql_text = tk.Text(f, height=10)
+        self.sql_text.grid(row=0, column=0, columnspan=5, sticky="nsew")
+        ttk.Button(f, text="Run", command=self.run_sql).grid(row=1, column=0, pady=6)
+        self.sql_out = tk.Text(f, height=10)
+        self.sql_out.grid(row=2, column=0, columnspan=5, sticky="nsew")
+        f.grid_rowconfigure(0, weight=1)
+        f.grid_rowconfigure(2, weight=1)
+        f.grid_columnconfigure(0, weight=1)
+
+    def run_sql(self):
+        s = self.sql_text.get("1.0", tk.END).strip()
+        if not s:
+            return
+        conn = self.get_conn()
+        cur = conn.cursor(dictionary=True)
+        cur.execute(s)
+        out = []
+        try:
+            rows = cur.fetchall()
+            for r in rows:
+                out.append(str(r))
+        except Exception:
+            out.append("OK")
+        cur.close(); conn.close()
+        self.sql_out.delete("1.0", tk.END)
+        self.sql_out.insert(tk.END, "\n".join(out))
 
 def run():
     root = tk.Tk()

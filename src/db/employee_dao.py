@@ -4,56 +4,58 @@ class EmployeeDAO:
 
     def list_all(self):
         cur = self.conn.cursor(dictionary=True)
-        cur.execute("SELECT id, ssn, name, gender, level FROM employees")
+        cur.execute("SELECT ssn, name, level, supervisor_ssn, supervisee_ssn FROM employees")
         rows = cur.fetchall()
         cur.close()
         return rows
 
     def find_by_ssn(self, ssn):
         cur = self.conn.cursor(dictionary=True)
-        cur.execute("SELECT id, ssn, name, gender, level FROM employees WHERE ssn=%s", (ssn,))
+        cur.execute("SELECT ssn, name, level, supervisor_ssn, supervisee_ssn FROM employees WHERE ssn=%s", (ssn,))
         row = cur.fetchone()
         cur.close()
         return row
 
-    def add(self, ssn, name, gender, level):
+    def add(self, ssn, name, level, supervisor_ssn=None, supervisee_ssn=None):
         cur = self.conn.cursor()
         cur.execute(
-            "INSERT INTO employees(ssn, name, gender, level) VALUES(%s, %s, %s, %s)",
-            (ssn, name, gender, level)
+            "INSERT INTO employees(ssn, name, level, supervisor_ssn, supervisee_ssn) VALUES(%s, %s, %s, %s, %s)",
+            (ssn, name, level, supervisor_ssn, supervisee_ssn)
         )
         self.conn.commit()
         cur.close()
 
-    def update(self, employee_id, name=None, gender=None, level=None):
+    def update(self, employee_ssn, name=None, level=None, supervisor_ssn=None, supervisee_ssn=None):
         parts = []
         vals = []
         if name is not None:
             parts.append("name=%s"); vals.append(name)
-        if gender is not None:
-            parts.append("gender=%s"); vals.append(gender)
         if level is not None:
             parts.append("level=%s"); vals.append(level)
+        if supervisor_ssn is not None:
+            parts.append("supervisor_ssn=%s"); vals.append(supervisor_ssn)
+        if supervisee_ssn is not None:
+            parts.append("supervisee_ssn=%s"); vals.append(supervisee_ssn)
         if not parts:
             return
-        sql = "UPDATE employees SET " + ", ".join(parts) + " WHERE id=%s"
-        vals.append(employee_id)
+        sql = "UPDATE employees SET " + ", ".join(parts) + " WHERE ssn=%s"
+        vals.append(employee_ssn)
         cur = self.conn.cursor()
         cur.execute(sql, tuple(vals))
         self.conn.commit()
         cur.close()
 
-    def delete(self, employee_id):
+    def delete(self, employee_ssn):
         cur = self.conn.cursor()
-        cur.execute("DELETE FROM employees WHERE id=%s", (employee_id,))
+        cur.execute("DELETE FROM employees WHERE ssn=%s", (employee_ssn,))
         self.conn.commit()
         cur.close()
 
-    def set_supervisor(self, employee_id, supervisor_id):
+    def set_supervisor(self, employee_ssn, supervisor_ssn):
         cur = self.conn.cursor()
         cur.execute(
-            "UPDATE employees SET supervisor_id=%s WHERE id=%s",
-            (supervisor_id, employee_id)
+            "UPDATE employees SET supervisor_ssn=%s WHERE ssn=%s",
+            (supervisor_ssn, employee_ssn)
         )
         self.conn.commit()
         cur.close()

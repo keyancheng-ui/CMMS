@@ -17,3 +17,9 @@ class LocationDAO:
         )
         self.conn.commit()
         cur.close()
+
+    def delete(self, location_id):
+        cur = self.conn.cursor()
+        cur.execute("DELETE FROM locations WHERE id=%s", (location_id,))
+        self.conn.commit()
+        cur.close()
