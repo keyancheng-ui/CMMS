@@ -1,4 +1,6 @@
 import argparse
+import os
+import shlex
 from db.connection import get_connection
 from db.employee_dao import EmployeeDAO
 from db.activity_dao import ActivityDAO
@@ -90,7 +92,6 @@ def main():
     sub.add_parser("db-bootstrap")
 
     args = parser.parse_args()
-    import os
     if args.host:
         os.environ["MYSQL_HOST"] = str(args.host)
     if args.port:
@@ -304,6 +305,55 @@ def main():
                 eid = int(input().strip()); conn = get_connection(); svc = ActivityService(ActivityDAO(conn)); rows = svc.list_by_employee(eid); [print(r) for r in rows]; conn.close()
             elif sel == "14":
                 conn = get_connection(); svc = ReportService(ReportDAO(conn)); rows = svc.employee_activity_summary(); [print(r) for r in rows]; conn.close()
+    elif args.cmd is None:
+        def set_env(k, v):
+            if v is not None and str(v).strip() != "":
+                os.environ[k] = str(v)
+        print("Enter username:")
+        u = input().strip()
+        print("Enter password:")
+        p = input().strip()
+        print("Enter port (default 3306):")
+        pp = input().strip()
+        set_env("MYSQL_USER", u)
+        set_env("MYSQL_PASSWORD", p)
+        set_env("MYSQL_PORT", pp if pp else "3306")
+        set_env("MYSQL_HOST", os.getenv("MYSQL_HOST", "localhost"))
+        set_env("MYSQL_DATABASE", os.getenv("MYSQL_DATABASE", "appdb"))
+        print("Ready. Type commands like: 'List locations', 'Add employee <ssn> <name> <gender> <level>', 'Exit'")
+        while True:
+            line = input().strip()
+            if not line:
+                continue
+            cmd = line.strip()
+            low = cmd.lower()
+            if low in ("exit", "quit"):
+                break
+            toks = shlex.split(cmd)
+            ltoks = [t.lower() for t in toks]
+            if len(ltoks) >= 2 and ltoks[0] == "list" and ltoks[1] == "locations":
+                conn = get_connection(); lsvc = LocationService(LocationDAO(conn)); rows = lsvc.list_all(); [print(r) for r in rows]; conn.close(); continue
+            if len(ltoks) >= 2 and ltoks[0] == "list" and ltoks[1] == "employees":
+                conn = get_connection(); esvc = EmployeeService(EmployeeDAO(conn)); rows = esvc.list_all(); [print(r) for r in rows]; conn.close(); continue
+            if len(ltoks) >= 2 and ltoks[0] == "list" and ltoks[1] == "contractors":
+                conn = get_connection(); csvc = ContractorService(ContractorDAO(conn)); rows = csvc.list_all(); [print(r) for r in rows]; conn.close(); continue
+            if len(ltoks) >= 3 and ltoks[0] == "list" and ltoks[1] == "activities":
+                eid = int(ltoks[2]); conn = get_connection(); asvc = ActivityService(ActivityDAO(conn)); rows = asvc.list_by_employee(eid); [print(r) for r in rows]; conn.close(); continue
+            if len(ltoks) >= 5 and ltoks[0] == "add" and ltoks[1] == "employee":
+                ssn = toks[2]; name = toks[3]; gender = toks[4]; level = toks[5] if len(toks) > 5 else "basic"; conn = get_connection(); dao = EmployeeDAO(conn); dao.add(ssn, name, gender, level); conn.close(); print("OK"); continue
+            if len(ltoks) >= 4 and ltoks[0] == "set" and ltoks[1] == "supervisor":
+                eid = int(toks[2]); sid = int(toks[3]); conn = get_connection(); ssvc = SupervisionService(SupervisionDAO(conn)); ssvc.set_supervision(eid, sid); conn.close(); print("OK"); continue
+            if len(ltoks) >= 5 and ltoks[0] == "add" and ltoks[1] == "location":
+                b = toks[2]; f = toks[3]; r = toks[4]; conn = get_connection(); lsvc = LocationService(LocationDAO(conn)); lsvc.add(b, f, r); conn.close(); print("OK"); continue
+            if len(ltoks) >= 6 and ltoks[0] == "add" and ltoks[1] == "activity":
+                mid = int(toks[2]); lid = int(toks[3]); date = toks[4]; atype = toks[5]; desc = " ".join(toks[6:]) if len(toks) > 6 else ""; conn = get_connection(); dao = ActivityDAO(conn); dao.add(mid, lid, date, atype, desc); conn.close(); print("OK"); continue
+            if len(ltoks) >= 4 and ltoks[0] == "assign" and ltoks[1] == "employee":
+                aid = int(toks[2]); eid = int(toks[3]); conn = get_connection(); dao = ActivityDAO(conn); dao.assign_employee(aid, eid); conn.close(); print("OK"); continue
+            if len(ltoks) >= 4 and ltoks[0] == "assign" and ltoks[1] == "contractor":
+                aid = int(toks[2]); cid = int(toks[3]); conn = get_connection(); dao = ActivityDAO(conn); dao.assign_contractor(aid, cid); conn.close(); print("OK"); continue
+            if low in ("report employee activity", "employee activity report"):
+                conn = get_connection(); rsvc = ReportService(ReportDAO(conn)); rows = rsvc.employee_activity_summary(); [print(r) for r in rows]; conn.close(); continue
+            print("Unknown command")
     elif args.cmd == "db-bootstrap":
         from db.connection import get_connection_no_db
         dbname = os.getenv("MYSQL_DATABASE")
