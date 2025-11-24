@@ -1,9 +1,10 @@
 # 2411project
 
-## 运行 Docker MySQL
+## 数据库（本地 MySQL）
 
-- 在项目根执行：`"C:\\Program Files\\Docker\\Docker\\resources\\bin\\docker.exe" compose -f docker/docker-compose.yml up -d`
-- 首次启动会导入 `docker/init/*.sql`
+- 使用本机 MySQL（例如 Workbench/命令行），确保可以连接 `localhost:3306`
+- 初始化最小表结构：`python src/main.py --host localhost --port 3306 --user <user> --password <pass> --database appdb db-bootstrap`
+- 从 SQL 文件导入：`python src/main.py --host localhost --port 3306 --user <user> --password <pass> --database appdb db-init --schema sql/schema.sql --data sql/test_data.sql`
 
 ## Python CLI
 
@@ -12,7 +13,7 @@
 
 ## 目录结构
 
-- docker/: Compose 与初始化 SQL
+- sql/: schema 与示例数据
 - src/: 代码（db、logic、ui）
 - sql/: 示例查询
 - docs/: 文档占位
