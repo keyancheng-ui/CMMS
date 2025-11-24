@@ -7,7 +7,7 @@ class ActivityDAO:
     def list_by_employee(self, employee_id):
         cur = self.conn.cursor(dictionary=True)
         cur.execute(
-            "SELECT id, description, activity_time FROM activities WHERE employee_id=%s",
+            "SELECT a.id, a.activity_date, a.activity_type, a.description FROM activities a JOIN activity_employees ae ON ae.activity_id=a.id WHERE ae.employee_id=%s",
             (employee_id,)
         )
         rows = cur.fetchall()

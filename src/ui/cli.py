@@ -3,9 +3,17 @@ from db.connection import get_connection
 from db.employee_dao import EmployeeDAO
 from db.activity_dao import ActivityDAO
 from db.report_dao import ReportDAO
+from db.contractor_dao import ContractorDAO
+from db.temp_employee_dao import TempEmployeeDAO
+from db.location_dao import LocationDAO
+from db.supervision_dao import SupervisionDAO
 from logic.employee_service import EmployeeService
 from logic.activity_service import ActivityService
 from logic.report_service import ReportService
+from logic.contractor_service import ContractorService
+from logic.temp_employee_service import TempEmployeeService
+from logic.location_service import LocationService
+from logic.supervision_service import SupervisionService
 
 def main():
     parser = argparse.ArgumentParser()
@@ -28,6 +36,9 @@ def main():
     p_set_sup.add_argument("employee_id", type=int)
     p_set_sup.add_argument("supervisor_id", type=int)
 
+    p_list_sub = sub.add_parser("list-subordinates")
+    p_list_sub.add_argument("supervisor_id", type=int)
+
     p_act = sub.add_parser("list-activities")
     p_act.add_argument("employee_id", type=int)
 
@@ -46,6 +57,28 @@ def main():
     p_assign_con = sub.add_parser("assign-contractor")
     p_assign_con.add_argument("activity_id", type=int)
     p_assign_con.add_argument("contractor_id", type=int)
+
+    p_list_con = sub.add_parser("list-contractors")
+    p_add_con = sub.add_parser("add-contractor")
+    p_add_con.add_argument("ssn")
+    p_add_con.add_argument("name")
+    p_add_con.add_argument("company")
+
+    p_list_temp = sub.add_parser("list-temp-employees")
+    p_add_temp = sub.add_parser("add-temp-employee")
+    p_add_temp.add_argument("ssn")
+    p_add_temp.add_argument("name")
+    p_add_temp.add_argument("gender")
+    p_add_temp.add_argument("company_id", type=int)
+    p_add_temp.add_argument("supervisor_id", type=int)
+
+    p_list_loc = sub.add_parser("list-locations")
+    p_add_loc = sub.add_parser("add-location")
+    p_add_loc.add_argument("building")
+    p_add_loc.add_argument("floor")
+    p_add_loc.add_argument("room")
+
+    sub.add_parser("menu")
 
     sub.add_parser("report-employee-activity")
     sub.add_parser("db-ping")
@@ -85,14 +118,18 @@ def main():
         conn.close()
         print("OK")
     elif args.cmd == "set-supervisor":
-        from db.supervision_dao import SupervisionDAO
-        from db.validators import ensure_distinct
-        ensure_distinct(args.employee_id, args.supervisor_id)
         conn = get_connection()
-        sdao = SupervisionDAO(conn)
-        sdao.set_supervision(args.employee_id, args.supervisor_id)
+        ssvc = SupervisionService(SupervisionDAO(conn))
+        ssvc.set_supervision(args.employee_id, args.supervisor_id)
         conn.close()
         print("OK")
+    elif args.cmd == "list-subordinates":
+        conn = get_connection()
+        ssvc = SupervisionService(SupervisionDAO(conn))
+        rows = ssvc.list_subordinates(args.supervisor_id)
+        for r in rows:
+            print(r)
+        conn.close()
     elif args.cmd == "list-activities":
         conn = get_connection()
         svc = ActivityService(ActivityDAO(conn))
@@ -116,6 +153,45 @@ def main():
         conn = get_connection()
         dao = ActivityDAO(conn)
         dao.assign_contractor(args.activity_id, args.contractor_id)
+        conn.close()
+        print("OK")
+    elif args.cmd == "list-contractors":
+        conn = get_connection()
+        csvc = ContractorService(ContractorDAO(conn))
+        rows = csvc.list_all()
+        for r in rows:
+            print(r)
+        conn.close()
+    elif args.cmd == "add-contractor":
+        conn = get_connection()
+        csvc = ContractorService(ContractorDAO(conn))
+        csvc.add(args.ssn, args.name, args.company)
+        conn.close()
+        print("OK")
+    elif args.cmd == "list-temp-employees":
+        conn = get_connection()
+        tsvc = TempEmployeeService(TempEmployeeDAO(conn))
+        rows = tsvc.list_all()
+        for r in rows:
+            print(r)
+        conn.close()
+    elif args.cmd == "add-temp-employee":
+        conn = get_connection()
+        tsvc = TempEmployeeService(TempEmployeeDAO(conn))
+        tsvc.add(args.ssn, args.name, args.gender, args.company_id, args.supervisor_id)
+        conn.close()
+        print("OK")
+    elif args.cmd == "list-locations":
+        conn = get_connection()
+        lsvc = LocationService(LocationDAO(conn))
+        rows = lsvc.list_all()
+        for r in rows:
+            print(r)
+        conn.close()
+    elif args.cmd == "add-location":
+        conn = get_connection()
+        lsvc = LocationService(LocationDAO(conn))
+        lsvc.add(args.building, args.floor, args.room)
         conn.close()
         print("OK")
     elif args.cmd == "report-employee-activity":
@@ -172,6 +248,62 @@ def main():
         cur.close()
         conn.close()
         print("OK")
+    elif args.cmd == "menu":
+        while True:
+            print("1) list-employees")
+            print("2) add-employee")
+            print("3) set-supervisor")
+            print("4) list-contractors")
+            print("5) add-contractor")
+            print("6) list-temp-employees")
+            print("7) add-temp-employee")
+            print("8) list-locations")
+            print("9) add-location")
+            print("10) add-activity")
+            print("11) assign-employee")
+            print("12) assign-contractor")
+            print("13) list-activities")
+            print("14) report-employee-activity")
+            print("0) exit")
+            sel = input().strip()
+            if sel == "0":
+                break
+            if sel == "1":
+                print("cmd: list-employees")
+            elif sel == "2":
+                ssn = input().strip(); name = input().strip(); gender = input().strip(); level = input().strip()
+                conn = get_connection(); dao = EmployeeDAO(conn); dao.add(ssn, name, gender, level); conn.close(); print("OK")
+            elif sel == "3":
+                eid = int(input().strip()); sid = int(input().strip())
+                conn = get_connection(); ssvc = SupervisionService(SupervisionDAO(conn)); ssvc.set_supervision(eid, sid); conn.close(); print("OK")
+            elif sel == "4":
+                conn = get_connection(); csvc = ContractorService(ContractorDAO(conn)); rows = csvc.list_all(); [print(r) for r in rows]; conn.close()
+            elif sel == "5":
+                ssn = input().strip(); name = input().strip(); company = input().strip()
+                conn = get_connection(); csvc = ContractorService(ContractorDAO(conn)); csvc.add(ssn, name, company); conn.close(); print("OK")
+            elif sel == "6":
+                conn = get_connection(); tsvc = TempEmployeeService(TempEmployeeDAO(conn)); rows = tsvc.list_all(); [print(r) for r in rows]; conn.close()
+            elif sel == "7":
+                ssn = input().strip(); name = input().strip(); gender = input().strip(); cid = int(input().strip()); sid = int(input().strip())
+                conn = get_connection(); tsvc = TempEmployeeService(TempEmployeeDAO(conn)); tsvc.add(ssn, name, gender, cid, sid); conn.close(); print("OK")
+            elif sel == "8":
+                conn = get_connection(); lsvc = LocationService(LocationDAO(conn)); rows = lsvc.list_all(); [print(r) for r in rows]; conn.close()
+            elif sel == "9":
+                building = input().strip(); floor = input().strip(); room = input().strip()
+                conn = get_connection(); lsvc = LocationService(LocationDAO(conn)); lsvc.add(building, floor, room); conn.close(); print("OK")
+            elif sel == "10":
+                mid = int(input().strip()); lid = int(input().strip()); date = input().strip(); atype = input().strip(); desc = input().strip()
+                conn = get_connection(); dao = ActivityDAO(conn); dao.add(mid, lid, date, atype, desc); conn.close(); print("OK")
+            elif sel == "11":
+                aid = int(input().strip()); eid = int(input().strip())
+                conn = get_connection(); dao = ActivityDAO(conn); dao.assign_employee(aid, eid); conn.close(); print("OK")
+            elif sel == "12":
+                aid = int(input().strip()); cid = int(input().strip())
+                conn = get_connection(); dao = ActivityDAO(conn); dao.assign_contractor(aid, cid); conn.close(); print("OK")
+            elif sel == "13":
+                eid = int(input().strip()); conn = get_connection(); svc = ActivityService(ActivityDAO(conn)); rows = svc.list_by_employee(eid); [print(r) for r in rows]; conn.close()
+            elif sel == "14":
+                conn = get_connection(); svc = ReportService(ReportDAO(conn)); rows = svc.employee_activity_summary(); [print(r) for r in rows]; conn.close()
     elif args.cmd == "db-bootstrap":
         from db.connection import get_connection_no_db
         dbname = os.getenv("MYSQL_DATABASE")
