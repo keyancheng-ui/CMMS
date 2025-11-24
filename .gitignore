@@ -1,0 +1,8 @@
+.env
+docker/data/
+__pycache__/
+*.pyc
+.vscode/
+.idea/
+.DS_Store
+.pytest_cache/
