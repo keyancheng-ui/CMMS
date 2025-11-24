@@ -101,39 +101,37 @@
 
 ## 命令参考
 
-- 全局连接参数（必须放在子命令之前）
-  - `--host <host>`、`--port <port>`、`--user <user>`、`--password <pass>`、`--database <db>`
+### 交互式（自然语言）
+- 启动：`python src/main.py`（按提示输入 `username/password/port`）
+- 示例指令（不区分大小写）：
+  - `List locations`
+  - `List employees`
+  - `List contractors`
+  - `List activities 2`
+  - `Add location Main 2 201`
+  - `Add employee 123456789 Alice F middle`
+  - `Set supervisor 2 1`
+  - `Add contractor 999999999 ACME ACME`
+  - `Add activity 3 1 2025-11-30 cleaning "Hall daily"`
+  - `Assign employee 5 2`
+  - `Assign contractor 5 1`
+  - `Report employee activity`
+  - `Exit` / `Quit`
 
-- 数据库初始化与测试
-  - 连接测试：`python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-ping`
-  - 最小结构引导：`python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-bootstrap`
-  - 从 SQL 导入：`python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-init --schema sql/schema.sql --data sql/test_data.sql`
-
-- 员工与监督
-  - 列员工：`python src/main.py --host ... --user ... --password ... --database ... list-employees`
-  - 新增员工：`python src/main.py --host ... --user ... --password ... --database ... add-employee <ssn> <name> <gender> <level>`
-  - 设置监督：`python src/main.py --host ... --user ... --password ... --database ... set-supervisor <employee_id> <supervisor_id>`
-  - 下属列表：`python src/main.py --host ... --user ... --password ... --database ... list-subordinates <supervisor_id>`
-
-- 活动与分配
-  - 新增活动：`python src/main.py --host ... --user ... --password ... --database ... add-activity <manager_id> <location_id> <date> <type> <desc> [--requires_chemical]`
-  - 分配员工：`python src/main.py --host ... --user ... --password ... --database ... assign-employee <activity_id> <employee_id>`
-  - 分配承包商：`python src/main.py --host ... --user ... --password ... --database ... assign-contractor <activity_id> <contractor_id>`
-  - 按员工查活动：`python src/main.py --host ... --user ... --password ... --database ... list-activities <employee_id>`
-
-- 承包商与临时员工
-  - 列承包商：`python src/main.py --host ... --user ... --password ... --database ... list-contractors`
-  - 新增承包商：`python src/main.py --host ... --user ... --password ... --database ... add-contractor <ssn> <name> <company>`
-  - 列临时员工：`python src/main.py --host ... --user ... --password ... --database ... list-temp-employees`
-  - 新增临时员工：`python src/main.py --host ... --user ... --password ... --database ... add-temp-employee <ssn> <name> <gender> <company_id> <supervisor_id>`
-
-- 地点
-  - 列地点：`python src/main.py --host ... --user ... --password ... --database ... list-locations`
-  - 新增地点：`python src/main.py --host ... --user ... --password ... --database ... add-location <building> <floor> <room>`
-
-- 报表
-  - 员工活动汇总：`python src/main.py --host ... --user ... --password ... --database ... report-employee-activity`
-
-- 主菜单与 GUI
-  - 交互主菜单：`python src/main.py --host ... --user ... --password ... --database ... menu`
+### 参数化命令模式（可选）
+- 全局连接参数（必须在子命令之前）：`--host <host>`、`--port <port>`、`--user <user>`、`--password <pass>`、`--database <db>`
+- 初始化与测试：
+  - `python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-ping`
+  - `python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-bootstrap`
+  - `python src/main.py --host localhost --port 3306 --user <u> --password <p> --database appdb db-init --schema sql/schema.sql --data sql/test_data.sql`
+- 常用命令：
+  - `list-employees`、`add-employee <ssn> <name> <gender> <level>`
+  - `set-supervisor <employee_id> <supervisor_id>`、`list-subordinates <supervisor_id>`
+  - `add-activity <manager_id> <location_id> <date> <type> <desc> [--requires_chemical]`
+  - `assign-employee <activity_id> <employee_id>`、`assign-contractor <activity_id> <contractor_id>`
+  - `list-activities <employee_id>`、`report-employee-activity`
+  - `list-contractors`、`add-contractor <ssn> <name> <company>`
+  - `list-temp-employees`、`add-temp-employee <ssn> <name> <gender> <company_id> <supervisor_id>`
+  - `list-locations`、`add-location <building> <floor> <room>`
+  - 主菜单：`python src/main.py --host ... --user ... --password ... --database ... menu`
   - 图形界面：`python src/main.py gui`
