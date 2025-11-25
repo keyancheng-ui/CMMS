@@ -7,6 +7,16 @@ CREATE TABLE IF NOT EXISTS Employee (
   Emp_Level ENUM('executive officer', 'mid_level manager', 'base_level worker') NOT NULL
 );
 
+CREATE TABLE IF NOT EXISTS  Location (
+  
+  Building CHAR(20) NOT NULL,
+  Floor INT NOT NULL,
+  Room_number INT NOT NULL,
+  PRIMARY KEY (Building, Floor, Room_number)
+  
+);
+
+
 CREATE TABLE IF NOT EXISTS Office (
   OwnerSsn CHAR(20) NULL,
   Office_Building CHAR(20) NOT NULL,
@@ -26,26 +36,18 @@ CREATE TABLE IF NOT EXISTS Office (
   
 );
 
-CREATE TABLE IF NOT EXISTS  Location (
-  
-  Building CHAR(20) NOT NULL,
-  Floor INT NOT NULL,
-  Room_number INT NOT NULL,
-  PRIMARY KEY (Building, Floor, Room_number)
-  
-);
 
 CREATE TABLE IF NOT EXISTS Employee_Supervision (
   
   Supervisor_Ssn CHAR(20) NOT NULL,
   CONSTRAINT fk_supervisor_relation FOREIGN KEY (Supervisor_Ssn)
   REFERENCES Employee(Ssn)
-  ON UPDATE CASCADE，
+  ON UPDATE CASCADE,
 
   Supervisee_Ssn CHAR(20) NOT NULL,
   CONSTRAINT fk_supervision_relation FOREIGN KEY (Supervisee_Ssn)
   REFERENCES Employee(Ssn)
-  ON UPDATE CASCADE，
+  ON UPDATE CASCADE,
 
   PRIMARY KEY (Supervisor_Ssn, Supervisee_Ssn),
   CONSTRAINT chk_no_self_supervision CHECK (Supervisor_Ssn != Supervisee_Ssn)
@@ -58,7 +60,7 @@ CREATE TABLE IF NOT EXISTS TempSupervise (
   ON UPDATE CASCADE,
   
   Supervisee_Ssn_temp_employee CHAR(20) NOT NULL,
-  CONSTRAINT fk_temp_supervisor FOREIGN KEY (Supervisee_Ssn_temp_employee)
+  CONSTRAINT fk_temp_employee FOREIGN KEY (Supervisee_Ssn_temp_employee)
   REFERENCES Temporary_Employee(TempSsn)
   ON UPDATE CASCADE,
 
@@ -120,7 +122,7 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   Manage_Activity_Time DATE NOT NULL,
 
   CONSTRAINT fk_manage_activity_location_and_time FOREIGN KEY (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
-  REFERENCES Activity (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
+  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
   ON UPDATE CASCADE,
 
   PRIMARY KEY ( Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
