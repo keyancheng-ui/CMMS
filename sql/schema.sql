@@ -102,7 +102,7 @@ CREATE TABLE IF NOT EXISTS Activity (
 );
 
 CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
-  Manager_Ssn CHAR(20),
+  Manager_Ssn CHAR(20) NOT NULL,
   
   CONSTRAINT fk_activity_manager FOREIGN KEY (Manager_Ssn)
   REFERENCES Employee(Ssn)
@@ -125,7 +125,7 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
   ON UPDATE CASCADE,
 
-  PRIMARY KEY ( Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
+  PRIMARY KEY ( Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
 );
 
 CREATE TABLE IF NOT EXISTS Employee_Work_On (
