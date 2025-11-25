@@ -1,18 +1,140 @@
 CREATE DATABASE IF NOT EXISTS appdb;
 USE appdb;
 
-CREATE TABLE IF NOT EXISTS employees (
-  ssn CHAR(9) PRIMARY KEY,
-  name VARCHAR(100) NOT NULL,
-  level VARCHAR(20),
-  supervisor_ssn CHAR(9) NULL,
-  supervisee_ssn CHAR(9) NULL,
-  office_location_id INT NULL
+CREATE TABLE IF NOT EXISTS Employee (
+  Ssn CHAR(20) PRIMARY KEY,
+  Name VARCHAR(100) NOT NULL,
+  Emp_Level ENUM('executive officer', 'mid_level manager', 'base_level worker') NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS contractor_companies (
-  name VARCHAR(100) PRIMARY KEY
+CREATE TABLE IF NOT EXISTS Office (
+  OwnerSsn CHAR(20) NULL,
+  Office_Building CHAR(20) NOT NULL,
+  Office_Floor INT NOT NULL,
+  Office_RoomNum INT NOT NULL,
+  
+  CONSTRAINT fk_office_owner FOREIGN KEY (OwnerSsn)
+  REFERENCES Employee(Ssn)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE,
+
+  CONSTRAINT fk_office_location FOREIGN KEY (Office_Building, Office_Floor, Office_RoomNum)
+  REFERENCES Location(Building, Floor, Room_number)
+  ON UPDATE CASCADE,
+
+  PRIMARY KEY (Office_Building, Office_Floor, Office_RoomNum)
+  
 );
+
+CREATE TABLE IF NOT EXISTS  Location (
+  
+  Building CHAR(20) NOT NULL,
+  Floor INT NOT NULL,
+  Room_number INT NOT NULL,
+  PRIMARY KEY (Building, Floor, Room_number)
+  
+);
+
+CREATE TABLE IF NOT EXISTS Employee_Supervision (
+  
+  Supervisor_Ssn CHAR(20) NOT NULL,
+  CONSTRAINT fk_supervisor_relation FOREIGN KEY (Supervisor_Ssn, Supervisee_Ssn)
+  REFERENCES Employee(Ssn)
+  ON UPDATE CASCADE，
+
+  Supervisee_Ssn CHAR(20) NOT NULL,
+  CONSTRAINT fk_supervision_relation FOREIGN KEY (Supervisor_Ssn, Supervisee_Ssn)
+  REFERENCES Employee(Ssn)
+  ON UPDATE CASCADE，
+
+  PRIMARY KEY (Supervisor_Ssn, Supervisee_Ssn),
+  CONSTRAINT chk_no_self_supervision CHECK (Supervisor_Ssn != Supervisee_Ssn)
+);
+
+CREATE TABLE IF NOT EXISTS TempSupervise (
+  Supervisor_Ssn_midlevel_manager CHAR(20) NOT NULL,
+  CONSTRAINT fk_temp_supervisor FOREIGN KEY (Supervisor_Ssn_midlevel_manager)
+  REFERENCES Employee(Ssn)
+  ON UPDATE CASCADE,
+  
+  Supervisee_Ssn_temp_employee CHAR(20) NOT NULL,
+  CONSTRAINT fk_temp_supervisor FOREIGN KEY (Supervisee_Ssn_temp_employee)
+  REFERENCES Temporary_Employee(TempSsn)
+  ON UPDATE CASCADE,
+
+  PRIMARY KEY (temp_employee_ssn, supervisor_ssn)
+  
+);
+
+CREATE TABLE IF NOT EXISTS Temporary_Employee (
+  TempSsn CHAR(20) PRIMARY KEY,
+  Company_name VARCHAR(100) NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS Contractor_Company (
+  Temp_Employee_Ssn CHAR(20) PRIMARY KEY,
+  
+  CONSTRAINT fk_temp_employee_company FOREIGN KEY (Temp_Employee_Ssn)
+  REFERENCES Temporary_Employee(TempSsn)
+  ON UPDATE CASCADE,
+  
+  name VARCHAR(100)
+);
+
+CREATE TABLE IF NOT EXISTS Activity (
+  
+  Activity_Time DATE NOT NULL,
+  Activity_Type ENUM('daily campus cleaning', 'campus ageing', 'weather-related issues') NOT NULL
+  Require_Chemical TINYINT DEFAULT 0,
+
+  Activity_Building CHAR(20) NOT NULL,
+  Activity_Floor INT NOT NULL,
+  Activity_RoomNum INT NOT NULL,
+
+  CONSTRAINT fk_activity_location FOREIGN KEY (Activity_Building, Activity_Floor, Activity_RoomNum)
+  REFERENCES Location(Building, Floor, Room_number)
+  ON UPDATE CASCADE,
+
+  PRIMARY KEY (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
+  
+);
+
+CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
+  Manager_Ssn CHAR(20),
+  
+  CONSTRAINT fk_activity_manager FOREIGN KEY (Manager_Ssn)
+  REFERENCES Employee(Ssn)
+  ON UPDATE CASCADE,
+
+  CONSTRAINT chk_manager_level CHECK (
+    Manager_Ssn IN (SELECT Ssn 
+                    FROM Employee 
+                    WHERE Emp_Level = 'mid_level manager')
+  ),
+
+
+  Manage_Activity_Building CHAR(20) NOT NULL,
+  Manage_Activity_Floor INT NOT NULL,
+  Manage_Activity_RoomNum INT NOT NULL,
+
+  Manage_Activity_Time DATE NOT NULL,
+
+  CONSTRAINT fk_manage_activity_location_and_time FOREIGN KEY (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
+  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
+  ON UPDATE CASCADE,
+
+  PRIMARY KEY ( Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
+);
+
+
+
+
+
+
+
+
+
+
 
 CREATE TABLE IF NOT EXISTS temp_employees (
   TempSsn CHAR(9) PRIMARY KEY,
@@ -20,13 +142,7 @@ CREATE TABLE IF NOT EXISTS temp_employees (
   company VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS locations (
-  id INT PRIMARY KEY AUTO_INCREMENT,
-  building VARCHAR(100),
-  floor VARCHAR(20),
-  room VARCHAR(20),
-  UNIQUE KEY uniq_loc (building, floor, room)
-);
+
 
 CREATE TABLE IF NOT EXISTS activities (
   id INT PRIMARY KEY AUTO_INCREMENT,
@@ -53,12 +169,7 @@ CREATE TABLE IF NOT EXISTS activity_temp_employees (
   PRIMARY KEY (activity_id, temp_employee_ssn)
 );
 
-CREATE TABLE IF NOT EXISTS supervise (
-  employee_id INT NOT NULL,
-  supervisor_id INT NOT NULL,
-  PRIMARY KEY (employee_id, supervisor_id),
-  UNIQUE KEY uniq_employee (employee_id)
-);
+
 
 CREATE TABLE IF NOT EXISTS dependents (
   id INT PRIMARY KEY AUTO_INCREMENT,
