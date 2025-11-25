@@ -1,51 +1,149 @@
+import mysql.connector
+from mysql.connector import pooling
 import os
-from dotenv import load_dotenv
-from mysql.connector import connect
+from typing import Optional
+import logging
 
-load_dotenv()
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-def get_connection(pool_name: str = "app_pool", pool_size: int = 3):
-    host = os.getenv("MYSQL_HOST", "localhost")
-    port = int(os.getenv("MYSQL_PORT", "3306"))
-    user = os.getenv("MYSQL_USER")
-    password = os.getenv("MYSQL_PASSWORD")
-    database = os.getenv("MYSQL_DATABASE")
-    return connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        database=database,
-        pool_name=pool_name,
-        pool_size=pool_size,
-    )
-
-def get_connection_no_db(pool_name: str = "init_pool", pool_size: int = 1):
-    host = os.getenv("MYSQL_HOST", "localhost")
-    port = int(os.getenv("MYSQL_PORT", "3306"))
-    user = os.getenv("MYSQL_USER") or os.getenv("MYSQL_ROOT_USER", "root")
-    password = os.getenv("MYSQL_PASSWORD") or os.getenv("MYSQL_ROOT_PASSWORD")
-    return connect(
-        host=host,
-        port=port,
-        user=user,
-        password=password,
-        pool_name=pool_name,
-        pool_size=pool_size,
-    )
-
-def ping():
-    try:
-        conn = get_connection()
-    except Exception:
-        host = os.getenv("MYSQL_HOST", "localhost")
-        port = int(os.getenv("MYSQL_PORT", "3306"))
-        user = os.getenv("MYSQL_ROOT_USER", "root")
-        password = os.getenv("MYSQL_ROOT_PASSWORD")
-        database = os.getenv("MYSQL_DATABASE")
-        conn = connect(host=host, port=port, user=user, password=password, database=database)
-    cur = conn.cursor()
-    cur.execute("SELECT 1")
-    cur.fetchall()
-    cur.close()
-    conn.close()
+class DatabaseConnection:
+    _connection_pool = None
+    
+    @classmethod
+    def initialize_pool(cls, host: str = 'localhost', port: int = 3306, 
+                       user: str = 'root', password: str = '', 
+                       database: str = 'appdb', pool_size: int = 5):
+        try:
+            cls._connection_pool = pooling.MySQLConnectionPool(
+                pool_name="appdb_pool",
+                pool_size=pool_size,
+                host=host,
+                port=port,
+                user=user,
+                password=password,
+                database=database,
+                autocommit=True,
+                charset='utf8mb4'
+            )
+            logger.info("Database connection pool initialized successfully")
+            return True
+        except Exception as e:
+            logger.error(f"Failed to initialize database connection pool: {str(e)}")
+            return False
+    
+    @classmethod
+    def get_connection(cls):
+        if cls._connection_pool is None:
+            host = os.getenv('MYSQL_HOST', 'localhost')
+            port = int(os.getenv('MYSQL_PORT', '3306'))
+            user = os.getenv('MYSQL_USER', 'root')
+            password = os.getenv('MYSQL_PASSWORD', '')
+            database = os.getenv('MYSQL_DATABASE', 'appdb')
+            
+            if not cls.initialize_pool(host, port, user, password, database):
+                raise Exception("Database connection pool not initialized")
+        
+        try:
+            connection = cls._connection_pool.get_connection()
+            return connection
+        except Exception as e:
+            logger.error(f"Failed to get database connection: {str(e)}")
+            raise
+    
+    @classmethod
+    def get_connection_no_db(cls):
+        try:
+            connection = mysql.connector.connect(
+                host=os.getenv('MYSQL_HOST', 'localhost'),
+                port=int(os.getenv('MYSQL_PORT', '3306')),
+                user=os.getenv('MYSQL_USER', 'root'),
+                password=os.getenv('MYSQL_PASSWORD', ''),
+                charset='utf8mb4'
+            )
+            return connection
+        except Exception as e:
+            logger.error(f"Failed to get database connection (no DB): {str(e)}")
+            raise
+    
+    @classmethod
+    def ping(cls) -> bool:
+        try:
+            connection = cls.get_connection()
+            connection.ping(reconnect=True, attempts=3, delay=1)
+            connection.close()
+            logger.info("Database ping successful")
+            return True
+        except Exception as e:
+            logger.error(f"Database ping failed: {str(e)}")
+            return False
+    
+    @classmethod
+    def bootstrap_database(cls):
+        try:
+            import os
+            current_dir = os.path.dirname(os.path.abspath(__file__))
+            schema_file = os.path.join(current_dir, '../../sql/schema.sql')
+            
+            with open(schema_file, 'r', encoding='utf-8') as f:
+                schema_sql = f.read()
+            
+            sql_statements = [stmt.strip() for stmt in schema_sql.split(';') if stmt.strip()]
+            
+            connection = cls.get_connection_no_db()
+            cursor = connection.cursor()
+            
+            for statement in sql_statements:
+                if statement:
+                    cursor.execute(statement)
+            
+            connection.commit()
+            cursor.close()
+            connection.close()
+            
+            logger.info("Database bootstrap completed successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Database bootstrap failed: {str(e)}")
+            return False
+    
+    @classmethod
+    def initialize_with_data(cls, schema_file: str = None, data_file: str = None):
+        try:
+            if schema_file:
+                with open(schema_file, 'r', encoding='utf-8') as f:
+                    schema_sql = f.read()
+                
+                connection = cls.get_connection()
+                cursor = connection.cursor()
+            
+                for statement in schema_sql.split(';'):
+                    if statement.strip():
+                        cursor.execute(statement.strip())
+                
+                connection.commit()
+                cursor.close()
+                connection.close()
+            
+            if data_file:
+                with open(data_file, 'r', encoding='utf-8') as f:
+                    data_sql = f.read()
+                
+                connection = cls.get_connection()
+                cursor = connection.cursor()
+                
+                for statement in data_sql.split(';'):
+                    if statement.strip():
+                        cursor.execute(statement.strip())
+                
+                connection.commit()
+                cursor.close()
+                connection.close()
+            
+            logger.info("Database initialization with data completed successfully")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Database initialization failed: {str(e)}")
+            return False
