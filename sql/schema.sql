@@ -38,12 +38,12 @@ CREATE TABLE IF NOT EXISTS  Location (
 CREATE TABLE IF NOT EXISTS Employee_Supervision (
   
   Supervisor_Ssn CHAR(20) NOT NULL,
-  CONSTRAINT fk_supervisor_relation FOREIGN KEY (Supervisor_Ssn, Supervisee_Ssn)
+  CONSTRAINT fk_supervisor_relation FOREIGN KEY (Supervisor_Ssn)
   REFERENCES Employee(Ssn)
   ON UPDATE CASCADE，
 
   Supervisee_Ssn CHAR(20) NOT NULL,
-  CONSTRAINT fk_supervision_relation FOREIGN KEY (Supervisor_Ssn, Supervisee_Ssn)
+  CONSTRAINT fk_supervision_relation FOREIGN KEY (Supervisee_Ssn)
   REFERENCES Employee(Ssn)
   ON UPDATE CASCADE，
 
@@ -62,7 +62,7 @@ CREATE TABLE IF NOT EXISTS TempSupervise (
   REFERENCES Temporary_Employee(TempSsn)
   ON UPDATE CASCADE,
 
-  PRIMARY KEY (temp_employee_ssn, supervisor_ssn)
+  PRIMARY KEY (Supervisor_Ssn_midlevel_manager, Supervisee_Ssn_temp_employee)
   
 );
 
@@ -84,7 +84,7 @@ CREATE TABLE IF NOT EXISTS Contractor_Company (
 CREATE TABLE IF NOT EXISTS Activity (
   
   Activity_Time DATE NOT NULL,
-  Activity_Type ENUM('daily campus cleaning', 'campus ageing', 'weather-related issues') NOT NULL
+  Activity_Type ENUM('daily campus cleaning', 'campus ageing', 'weather-related issues') NOT NULL,
   Require_Chemical TINYINT DEFAULT 0,
 
   Activity_Building CHAR(20) NOT NULL,
@@ -120,7 +120,7 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   Manage_Activity_Time DATE NOT NULL,
 
   CONSTRAINT fk_manage_activity_location_and_time FOREIGN KEY (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
-  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
+  REFERENCES Activity (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
   ON UPDATE CASCADE,
 
   PRIMARY KEY ( Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
@@ -192,7 +192,7 @@ CREATE TABLE IF NOT EXISTS Applied_To (
   Applied_Room_number INT NOT NULL,
   Applied_Reason CHAR(100) NOT NULL,
     
-  PRIMARY KEY (Applied_Time DATE, Applied_Building,  Applied_Floor,  Applied_Room_number),
+  PRIMARY KEY (Applied_Time, Applied_Building,  Applied_Floor,  Applied_Room_number),
   
   CONSTRAINT fk_applied_location FOREIGN KEY (Applied_Building,  Applied_Floor,  Applied_Room_number)
   REFERENCES Location (Building, Floor, Room_number)
@@ -200,7 +200,7 @@ CREATE TABLE IF NOT EXISTS Applied_To (
 
   CONSTRAINT fk_applied_time FOREIGN KEY ( Applied_Time)
   REFERENCES Activity (Activity_Time)
-  ON UPDATE CASCADE,
+  ON UPDATE CASCADE
 );
 
 
