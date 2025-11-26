@@ -3,7 +3,7 @@ from db.validators import ensure_distinct
 class SupervisionDAO:
     def __init__(self, conn):
         self.conn = conn
-
+#1
     def set_supervision(self, employee_ssn, supervisor_ssn):
         ensure_distinct(employee_ssn, supervisor_ssn)
         cur = self.conn.cursor()
