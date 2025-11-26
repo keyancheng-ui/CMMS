@@ -1,4 +1,4 @@
-from src.db import initialize_database
+from db import initialize_database
 
 def main():
     print("start to initialize database...")

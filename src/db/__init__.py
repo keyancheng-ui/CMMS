@@ -39,19 +39,33 @@ def get_sample_queries():
 # a function to initialize database
 def initialize_database(host='localhost', user='root', password='', database='appdb'):
 
-    db = DatabaseConnection(host=host, user=user, password=password, database=database)
+    try:
+        # connect to mysql database
+        db_system = DatabaseConnection(host=host, user=user, password=password, database='mysql')
 
-    schema_sql = get_database_schema()
-    if schema_sql:
-        db.execute_script(schema_sql)
-        print("database schema successfully set")
+        # create aiming database if not exist
+        db_system.execute_script(f"CREATE DATABASE IF NOT EXISTS {database}")
 
-    test_sql = get_test_data()
-    if test_sql:
-        db.execute_script(test_sql)
-        print("test data successfully inserted")
+        db_system.close()
 
-    db.close()
+        # connect to aiming database
+        db = DatabaseConnection(host=host, user=user, password=password, database=database)
+
+        schema_sql = get_database_schema()
+        if schema_sql:
+            db.execute_script(schema_sql)
+            print("database successfully set")
+
+        test_sql = get_test_data()
+        if test_sql:
+            db.execute_script(test_sql)
+            print("test data successfully inserted")
+
+        db.close()
+        print("database initialization finished")
+
+    except Exception as e:
+        print(f"database initialization failed: {e}")
 
 __all__ = [
     'DatabaseConnection',
