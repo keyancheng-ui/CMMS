@@ -1,161 +1,141 @@
 from .connection import DatabaseConnection
-from .validators import Validators
-from typing import List, Dict, Any, Optional
-import logging
-
-logger = logging.getLogger(__name__)
+from .validators import Validators, ensure_not_empty
 
 class EmployeeDAO:
     def __init__(self):
-        self.connection_pool = DatabaseConnection
-    
-    def create_employee(self, ssn: str, name: str, emp_level: str) -> Dict[str, Any]:
+        pass
+
+    def create_employee(self, ssn, name, emp_level):
         try:
+            ensure_not_empty(ssn)
+            ensure_not_empty(name)
+            ensure_not_empty(emp_level)
+            
             valid, msg = Validators.validate_ssn(ssn)
             if not valid:
                 return {"success": False, "error": msg}
-            
+                
             valid, msg = Validators.validate_name(name)
             if not valid:
                 return {"success": False, "error": msg}
-            
+                
             valid, msg = Validators.validate_employee_level(emp_level)
             if not valid:
                 return {"success": False, "error": msg}
+
+            db = DatabaseConnection()
+            query = "INSERT INTO Employee (Ssn, Name, Emp_Level) VALUES (%s, %s, %s)"
             
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
-            
-            query = """
-                INSERT INTO Employee (Ssn, Name, Emp_Level)
-                VALUES (%s, %s, %s)
-            """
-            values = (ssn, name, emp_level)
-            
-            cursor.execute(query, values)
-            
-            connection.commit()
+            cursor = db.connection.cursor()
+            cursor.execute(query, (ssn, name, emp_level))
+            db.connection.commit()
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Employee created successfully: SSN {ssn}")
-            return {
-                "success": True, 
-                "data": {
-                    "Ssn": ssn,
-                    "Name": name,
-                    "Emp_Level": emp_level
-                }
-            }
+            return {"success": True, "data": {"Ssn": ssn, "Name": name, "Emp_Level": emp_level}}
             
         except Exception as e:
-            logger.error(f"Failed to create employee: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
-    
-    def get_employee_by_ssn(self, ssn: str) -> Optional[Dict[str, Any]]:
+            return {"success": False, "error": str(e)}
+
+    def get_employee_by_ssn(self, ssn):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
+            ensure_not_empty(ssn)
             
+            db = DatabaseConnection()
             query = "SELECT * FROM Employee WHERE Ssn = %s"
+            
+            cursor = db.connection.cursor(dictionary=True)
             cursor.execute(query, (ssn,))
-            employee = cursor.fetchone()
-            
+            result = cursor.fetchone()
             cursor.close()
-            connection.close()
+            db.close()
             
-            return employee
-            
+            if result:
+                return {"success": True, "data": result}
+            else:
+                return {"success": False, "error": "Employee not found"}
+                
         except Exception as e:
-            logger.error(f"Failed to get employee by SSN {ssn}: {str(e)}")
-            return None
-    
-    def get_all_employees(self) -> List[Dict[str, Any]]:
+            return {"success": False, "error": str(e)}
+
+    def get_all_employees(self):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
-            
+            db = DatabaseConnection()
             query = "SELECT * FROM Employee ORDER BY Emp_Level, Name"
+            
+            cursor = db.connection.cursor(dictionary=True)
             cursor.execute(query)
-            employees = cursor.fetchall()
-            
+            results = cursor.fetchall()
             cursor.close()
-            connection.close()
+            db.close()
             
-            return employees
+            return {"success": True, "data": results}
             
         except Exception as e:
-            logger.error(f"Failed to get all employees: {str(e)}")
-            return []
-    
-    def get_employees_by_level(self, emp_level: str) -> List[Dict[str, Any]]:
+            return {"success": False, "error": str(e)}
+
+    def update_employee(self, ssn, name=None, emp_level=None):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
+            ensure_not_empty(ssn)
             
-            query = "SELECT * FROM Employee WHERE Emp_Level = %s ORDER BY Name"
-            cursor.execute(query, (emp_level,))
-            employees = cursor.fetchall()
+            updates = []
+            params = []
             
-            cursor.close()
-            connection.close()
-            
-            return employees
-            
-        except Exception as e:
-            logger.error(f"Failed to get employees by level {emp_level}: {str(e)}")
-            return []
-    
-    def get_mid_level_managers(self) -> List[Dict[str, Any]]:
-        return self.get_employees_by_level('mid_level manager')
-    
-    def get_base_level_workers(self) -> List[Dict[str, Any]]:
-        return self.get_employees_by_level('base_level worker')
-    
-    def get_executive_officers(self) -> List[Dict[str, Any]]:
-        return self.get_employees_by_level('executive officer')
-    
-    def update_employee(self, ssn: str, **kwargs) -> Dict[str, Any]:
-        try:
-            if not kwargs:
+            if name is not None:
+                valid, msg = Validators.validate_name(name)
+                if not valid:
+                    return {"success": False, "error": msg}
+                updates.append("Name = %s")
+                params.append(name)
+                
+            if emp_level is not None:
+                valid, msg = Validators.validate_employee_level(emp_level)
+                if not valid:
+                    return {"success": False, "error": msg}
+                updates.append("Emp_Level = %s")
+                params.append(emp_level)
+                
+            if not updates:
                 return {"success": False, "error": "No fields to update"}
-            
-            set_clause = ", ".join([f"{key} = %s" for key in kwargs.keys()])
-            values = list(kwargs.values())
-            values.append(ssn)
-            
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor()
-            
+                
+            params.append(ssn)
+            set_clause = ", ".join(updates)
             query = f"UPDATE Employee SET {set_clause} WHERE Ssn = %s"
-            cursor.execute(query, values)
             
-            connection.commit()
+            db = DatabaseConnection()
+            cursor = db.connection.cursor()
+            cursor.execute(query, params)
+            db.connection.commit()
+            affected = cursor.rowcount
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Employee {ssn} updated successfully")
-            return {"success": True, "data": {"Ssn": ssn, **kwargs}}
-            
+            if affected > 0:
+                return {"success": True, "data": {"Ssn": ssn, "updated_fields": updates}}
+            else:
+                return {"success": False, "error": "Employee not found"}
+                
         except Exception as e:
-            logger.error(f"Failed to update employee {ssn}: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
-    
-    def delete_employee(self, ssn: str) -> Dict[str, Any]:
+            return {"success": False, "error": str(e)}
+
+    def delete_employee(self, ssn):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor()
+            ensure_not_empty(ssn)
             
+            db = DatabaseConnection()
             query = "DELETE FROM Employee WHERE Ssn = %s"
+            
+            cursor = db.connection.cursor()
             cursor.execute(query, (ssn,))
-            
-            connection.commit()
+            db.connection.commit()
+            affected = cursor.rowcount
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Employee {ssn} deleted successfully")
-            return {"success": True, "data": {"Ssn": ssn}}
-            
+            if affected > 0:
+                return {"success": True, "data": {"Ssn": ssn}}
+            else:
+                return {"success": False, "error": "Employee not found"}
+                
         except Exception as e:
-            logger.error(f"Failed to delete employee {ssn}: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
+            return {"success": False, "error": str(e)}
