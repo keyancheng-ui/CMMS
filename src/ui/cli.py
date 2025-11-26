@@ -616,15 +616,25 @@ def main():
             print("Login success")
         elif sel in ("n", "no"):
             print("Register username:")
-            au = input().strip()
+            ru = input().strip()
             print("Register password:")
-            ap = input().strip()
-            r = udao.create_user(au, ap)
+            rp = input().strip()
+            r = udao.create_user(ru, rp)
             if not r.get("success"):
                 conn.close()
                 print("Registration failed")
                 return
-            print("Registration success")
+            print("Registration success. Please login.")
+            print("App username:")
+            au = input().strip()
+            print("App password:")
+            ap = input().strip()
+            r = udao.authenticate_user(au, ap)
+            if not r.get("success"):
+                conn.close()
+                print("Login failed")
+                return
+            print("Login success")
         else:
             conn.close()
             print("Unknown selection")
