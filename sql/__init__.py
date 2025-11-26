@@ -11,11 +11,9 @@ def get_schema():
     with open(SCHEMA_FILE, 'r', encoding='utf-8') as file1:
         return file1.read()
 def get_test_data():
-    """读取 test_data.sql 文件内容"""
     with open(TEST_DATA_FILE, 'r', encoding='utf-8') as file2:
         return file2.read()
 def get_sample_queries():
-    """读取 sample_queries.sql 文件内容"""
     with open(SAMPLE_QUERIES_FILE, 'r', encoding='utf-8') as file3:
         return file3.read()
 

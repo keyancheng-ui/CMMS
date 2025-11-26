@@ -1,21 +1,12 @@
-import sys
-from dotenv import load_dotenv
+from src.db import initialize_database
 
-load_dotenv()
+def main():
+    print("start to initialize database...")
 
-from db.connection import ping_server
+    initialize_database(password=input("Input your own mySQL password: ")) # use all default values
+
+    print("database initialization finished")
+    print("the system is now ready for use")
 
 if __name__ == "__main__":
-    ok = ping_server()
-    if ok:
-        print("MySQL connection: OK")
-    else:
-        print("MySQL connection: ERROR")
-        sys.exit(1)
-
-    if len(sys.argv) > 1 and sys.argv[1] == "gui":
-        from ui.gui import run
-        run()
-    else:
-        from ui.cli import main
-        main()
+    main()
