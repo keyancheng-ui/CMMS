@@ -69,7 +69,7 @@ class Validators:
             return False, "Company name must not exceed 100 characters"
         return True, "Valid company name"
 
-        @staticmethod
+    @staticmethod
     def validate_applied_reason(reason: str) -> Tuple[bool, str]:
         if not reason or len(reason.strip()) == 0:
             return False, "Applied reason cannot be empty"
@@ -77,20 +77,33 @@ class Validators:
             return False, "Applied reason must not exceed 100 characters"
         return True, "Valid applied reason"
 
-        @staticmethod
+    @staticmethod
     def validate_not_empty(field_name: str, value: str) -> Tuple[bool, str]:
         if not value or not str(value).strip():
             return False, f"{field_name} cannot be empty"
         return True, f"Valid {field_name}"
 
-        @staticmethod
+    @staticmethod
     def validate_ids_not_equal(id1: str, id2: str, field1: str, field2: str) -> Tuple[bool, str]:
         if id1 == id2:
             return False, f"{field1} and {field2} cannot be the same"
         return True, "IDs are different"
 
-        @staticmethod
+    @staticmethod
     def validate_chemical_requirement(require_chemical: int) -> Tuple[bool, str]:
         if require_chemical not in [0, 1]:
             return False, "Require_Chemical must be 0 or 1"
         return True, "Valid chemical requirement"
+
+def validate_date(date_str: str) -> None:
+    ok, msg = Validators.validate_date(date_str)
+    if not ok:
+        raise ValueError(msg)
+
+def ensure_not_empty(value: str) -> None:
+    if not value or not str(value).strip():
+        raise ValueError("value cannot be empty")
+
+def ensure_distinct(a: str, b: str) -> None:
+    if a == b:
+        raise ValueError("values must be distinct")

@@ -77,6 +77,15 @@ class DatabaseConnection:
         except Exception as e:
             logger.error(f"Database ping failed: {str(e)}")
             return False
+
+def get_connection():
+    return DatabaseConnection.get_connection()
+
+def get_connection_no_db():
+    return DatabaseConnection.get_connection_no_db()
+
+def ping():
+    return DatabaseConnection.ping()
     
     @classmethod
     def bootstrap_database(cls):

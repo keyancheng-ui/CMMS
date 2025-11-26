@@ -142,6 +142,13 @@ def main():
 
     sub.add_parser("db-bootstrap")
 
+    p_uc = sub.add_parser("user-create")
+    p_uc.add_argument("username")
+    p_uc.add_argument("password")
+    p_ul = sub.add_parser("user-login")
+    p_ul.add_argument("username")
+    p_ul.add_argument("password")
+
     args = parser.parse_args()
     if args.host:
         os.environ["MYSQL_HOST"] = str(args.host)
@@ -388,6 +395,22 @@ def main():
         cur.close()
         conn.close()
         print("OK")
+    elif args.cmd == "user-create":
+        conn = get_connection()
+        from db.user_dao import UserDAO
+        udao = UserDAO(conn)
+        udao.ensure_table()
+        res = udao.create_user(args.username, args.password)
+        conn.close()
+        print("OK" if res.get("success") else "ERR")
+    elif args.cmd == "user-login":
+        conn = get_connection()
+        from db.user_dao import UserDAO
+        udao = UserDAO(conn)
+        udao.ensure_table()
+        res = udao.authenticate_user(args.username, args.password)
+        conn.close()
+        print("OK" if res.get("success") else "FAIL")
     elif args.cmd == "run-sql":
         conn = get_connection()
         cur = conn.cursor(dictionary=True)
@@ -567,6 +590,46 @@ def main():
         set_env("MYSQL_PORT", pp if pp else "3306")
         set_env("MYSQL_HOST", os.getenv("MYSQL_HOST", "localhost"))
         set_env("MYSQL_DATABASE", os.getenv("MYSQL_DATABASE", "appdb"))
+        try:
+            conn = get_connection()
+        except Exception:
+            print("Database connection failed")
+            return
+        from db.user_dao import UserDAO
+        udao = UserDAO(conn)
+        udao.ensure_table()
+        ru = udao.get_user("root")
+        if not ru:
+            udao.create_user("root", "123456")
+        print("Do you have an account? (y/n):")
+        sel = input().strip().lower()
+        if sel in ("y", "yes"):
+            print("App username:")
+            au = input().strip()
+            print("App password:")
+            ap = input().strip()
+            r = udao.authenticate_user(au, ap)
+            if not r.get("success"):
+                conn.close()
+                print("Login failed")
+                return
+            print("Login success")
+        elif sel in ("n", "no"):
+            print("Register username:")
+            au = input().strip()
+            print("Register password:")
+            ap = input().strip()
+            r = udao.create_user(au, ap)
+            if not r.get("success"):
+                conn.close()
+                print("Registration failed")
+                return
+            print("Registration success")
+        else:
+            conn.close()
+            print("Unknown selection")
+            return
+        conn.close()
         print("Ready. Type commands like: 'List locations', 'Add employee <ssn> <name> <gender> <level>', 'Exit'")
         while True:
             line = input().strip()
@@ -731,6 +794,21 @@ def main():
           PRIMARY KEY (activity_id, location_id)
         )
         """)
+        cur.execute("""
+        CREATE TABLE IF NOT EXISTS app_users (
+          id INT PRIMARY KEY AUTO_INCREMENT,
+          username VARCHAR(64) NOT NULL UNIQUE,
+          password_hash VARBINARY(64) NOT NULL,
+          salt VARBINARY(32) NOT NULL,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          last_login TIMESTAMP NULL
+        )
+        """)
+        from db.user_dao import UserDAO
+        udao = UserDAO(conn)
+        udao.ensure_table()
+        if not udao.get_user("root"):
+            udao.create_user("root", "123456")
         conn.commit()
         cur.close()
         conn.close()
