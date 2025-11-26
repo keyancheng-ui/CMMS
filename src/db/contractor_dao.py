@@ -1,134 +1,139 @@
 from .connection import DatabaseConnection
-from .validators import Validators
-from typing import List, Dict, Any, Optional
-import logging
-
-logger = logging.getLogger(__name__)
+from .validators import Validators, ensure_not_empty
 
 class ContractorDAO:
     def __init__(self):
-        self.connection_pool = DatabaseConnection
-    
-    def create_contractor_company(self, temp_employee_ssn: str, name: str) -> Dict[str, Any]:
+        pass
+
+    def create_contractor_company(self, temp_employee_ssn, name):
         try:
+            ensure_not_empty(temp_employee_ssn)
+            ensure_not_empty(name)
+            
             valid, msg = Validators.validate_ssn(temp_employee_ssn)
             if not valid:
                 return {"success": False, "error": msg}
-            
+                
             valid, msg = Validators.validate_company_name(name)
             if not valid:
                 return {"success": False, "error": msg}
+
+            db = DatabaseConnection()
+            query = "INSERT INTO Contractor_Company (Temp_Employee_Ssn, name) VALUES (%s, %s)"
             
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
-            
-            query = """
-                INSERT INTO Contractor_Company (Temp_Employee_Ssn, name)
-                VALUES (%s, %s)
-            """
-            values = (temp_employee_ssn, name)
-            
-            cursor.execute(query, values)
-            
-            connection.commit()
+            cursor = db.connection.cursor()
+            cursor.execute(query, (temp_employee_ssn, name))
+            db.connection.commit()
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Contractor company created successfully for temp employee {temp_employee_ssn}")
-            return {
-                "success": True, 
-                "data": {
-                    "Temp_Employee_Ssn": temp_employee_ssn,
-                    "name": name
-                }
-            }
+            return {"success": True, "data": {"Temp_Employee_Ssn": temp_employee_ssn, "name": name}}
             
         except Exception as e:
-            logger.error(f"Failed to create contractor company: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
-    
-    def get_contractor_by_temp_employee_ssn(self, temp_employee_ssn: str) -> Optional[Dict[str, Any]]:
+            return {"success": False, "error": str(e)}
+
+    def get_contractor_by_temp_employee_ssn(self, temp_employee_ssn):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
+            ensure_not_empty(temp_employee_ssn)
             
+            db = DatabaseConnection()
             query = "SELECT * FROM Contractor_Company WHERE Temp_Employee_Ssn = %s"
+            
+            cursor = db.connection.cursor(dictionary=True)
             cursor.execute(query, (temp_employee_ssn,))
-            contractor = cursor.fetchone()
-            
+            result = cursor.fetchone()
             cursor.close()
-            connection.close()
+            db.close()
             
-            return contractor
-            
+            if result:
+                return {"success": True, "data": result}
+            else:
+                return {"success": False, "error": "Contractor not found"}
+                
         except Exception as e:
-            logger.error(f"Failed to get contractor by temp employee SSN {temp_employee_ssn}: {str(e)}")
-            return None
-    
-    def get_all_contractors(self) -> List[Dict[str, Any]]:
+            return {"success": False, "error": str(e)}
+
+    def get_all_contractors(self):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor(dictionary=True)
+            db = DatabaseConnection()
+            query = "SELECT * FROM Contractor_Company ORDER BY name"
             
-            query = """
-                SELECT cc.*, te.Company_name 
-                FROM Contractor_Company cc
-                JOIN Temporary_Employee te ON cc.Temp_Employee_Ssn = te.TempSsn
-                ORDER BY cc.name
-            """
+            cursor = db.connection.cursor(dictionary=True)
             cursor.execute(query)
-            contractors = cursor.fetchall()
-            
+            results = cursor.fetchall()
             cursor.close()
-            connection.close()
+            db.close()
             
-            return contractors
+            return {"success": True, "data": results}
             
         except Exception as e:
-            logger.error(f"Failed to get all contractors: {str(e)}")
-            return []
-    
-    def update_contractor(self, temp_employee_ssn: str, **kwargs) -> Dict[str, Any]:
+            return {"success": False, "error": str(e)}from .connection import DatabaseConnection
+from .validators import Validators, ensure_not_empty
+
+class ContractorDAO:
+    def __init__(self):
+        pass
+
+    def create_contractor_company(self, temp_employee_ssn, name):
         try:
-            if not kwargs:
-                return {"success": False, "error": "No fields to update"}
+            ensure_not_empty(temp_employee_ssn)
+            ensure_not_empty(name)
             
-            set_clause = ", ".join([f"{key} = %s" for key in kwargs.keys()])
-            values = list(kwargs.values())
-            values.append(temp_employee_ssn)
+            valid, msg = Validators.validate_ssn(temp_employee_ssn)
+            if not valid:
+                return {"success": False, "error": msg}
+                
+            valid, msg = Validators.validate_company_name(name)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            db = DatabaseConnection()
+            query = "INSERT INTO Contractor_Company (Temp_Employee_Ssn, name) VALUES (%s, %s)"
             
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor()
-            
-            query = f"UPDATE Contractor_Company SET {set_clause} WHERE Temp_Employee_Ssn = %s"
-            cursor.execute(query, values)
-            
-            connection.commit()
+            cursor = db.connection.cursor()
+            cursor.execute(query, (temp_employee_ssn, name))
+            db.connection.commit()
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Contractor {temp_employee_ssn} updated successfully")
-            return {"success": True, "data": {"Temp_Employee_Ssn": temp_employee_ssn, **kwargs}}
+            return {"success": True, "data": {"Temp_Employee_Ssn": temp_employee_ssn, "name": name}}
             
         except Exception as e:
-            logger.error(f"Failed to update contractor {temp_employee_ssn}: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
-    
-    def delete_contractor(self, temp_employee_ssn: str) -> Dict[str, Any]:
+            return {"success": False, "error": str(e)}
+
+    def get_contractor_by_temp_employee_ssn(self, temp_employee_ssn):
         try:
-            connection = self.connection_pool.get_connection()
-            cursor = connection.cursor()
+            ensure_not_empty(temp_employee_ssn)
             
-            query = "DELETE FROM Contractor_Company WHERE Temp_Employee_Ssn = %s"
+            db = DatabaseConnection()
+            query = "SELECT * FROM Contractor_Company WHERE Temp_Employee_Ssn = %s"
+            
+            cursor = db.connection.cursor(dictionary=True)
             cursor.execute(query, (temp_employee_ssn,))
-            
-            connection.commit()
+            result = cursor.fetchone()
             cursor.close()
-            connection.close()
+            db.close()
             
-            logger.info(f"Contractor {temp_employee_ssn} deleted successfully")
-            return {"success": True, "data": {"Temp_Employee_Ssn": temp_employee_ssn}}
+            if result:
+                return {"success": True, "data": result}
+            else:
+                return {"success": False, "error": "Contractor not found"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_all_contractors(self):
+        try:
+            db = DatabaseConnection()
+            query = "SELECT * FROM Contractor_Company ORDER BY name"
+            
+            cursor = db.connection.cursor(dictionary=True)
+            cursor.execute(query)
+            results = cursor.fetchall()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": results}
             
         except Exception as e:
-            logger.error(f"Failed to delete contractor {temp_employee_ssn}: {str(e)}")
-            return {"success": False, "error": f"Database error: {str(e)}"}
+            return {"success": False, "error": str(e)}
