@@ -1,117 +1,245 @@
-from db.validators import validate_date
+from .connection import DatabaseConnection
+from .validators import Validators, ensure_not_empty
 
 class ActivityDAO:
-    def __init__(self, conn):
-        self.conn = conn
+    def __init__(self):
+        pass
 
-    def list_by_employee(self, employee_ssn):
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute(
-            "SELECT a.id, a.activity_date, a.activity_type, a.description FROM activities a JOIN activity_employees ae ON ae.activity_id=a.id WHERE ae.employee_ssn=%s",
-            (employee_ssn,)
-        )
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+    def create_activity(self, activity_time, activity_type, require_chemical, activity_building, activity_floor, activity_room_num):
+        try:
+            ensure_not_empty(activity_time)
+            ensure_not_empty(activity_type)
+            ensure_not_empty(activity_building)
 
-    def add(self, manager_id, location_id, date_str, activity_type, description, requires_chemical=False):
-        validate_date(date_str)
-        cur = self.conn.cursor()
-        cur.execute(
-            "SELECT COUNT(*) FROM activity_locations al JOIN activities a ON a.id=al.activity_id WHERE al.location_id=%s AND a.activity_date=%s",
-            (location_id, date_str)
-        )
-        c = cur.fetchone()[0]
-        if c and c > 0:
-            cur.close()
-            raise ValueError("location conflict")
-        cur.execute(
-            "INSERT INTO activities(manager_id, activity_date, activity_type, description, requires_chemical) VALUES(%s, %s, %s, %s, %s)",
-            (manager_id, date_str, activity_type, description, 1 if requires_chemical else 0)
-        )
-        aid = cur.lastrowid
-        cur.execute(
-            "INSERT INTO activity_locations(activity_id, location_id, reason) VALUES(%s, %s, %s)",
-            (aid, location_id, "primary")
-        )
-        self.conn.commit()
-        cur.close()
+            valid, msg = Validators.validate_date(activity_time)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def assign_employee(self, activity_id, employee_ssn):
-        cur = self.conn.cursor()
-        cur.execute("INSERT INTO activity_employees(activity_id, employee_ssn) VALUES(%s, %s)", (activity_id, employee_ssn))
-        self.conn.commit()
-        cur.close()
+            valid, msg = Validators.validate_activity_type(activity_type)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def assign_contractor(self, activity_id, contractor_id):
-        raise NotImplementedError("Contractor assignments removed; use company-level supervision if needed")
+            valid, msg = Validators.validate_chemical_requirement(require_chemical)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def mark_complete(self, activity_id, result, finish_time):
-        cur = self.conn.cursor()
-        cur.execute("UPDATE activities SET result=%s, finish_time=%s WHERE id=%s", (result, finish_time, activity_id))
-        self.conn.commit()
-        cur.close()
+            valid, msg = Validators.validate_building(activity_building)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def list_by_filters(self, building=None, date_str=None, activity_type=None):
-        sql = "SELECT a.id, a.activity_date, a.activity_type, a.description FROM activities a JOIN activity_locations al ON al.activity_id=a.id JOIN locations l ON al.location_id=l.id WHERE 1=1"
-        vals = []
-        if building:
-            sql += " AND l.building=%s"; vals.append(building)
-        if date_str:
-            validate_date(date_str)
-            sql += " AND a.activity_date=%s"; vals.append(date_str)
-        if activity_type:
-            sql += " AND a.activity_type=%s"; vals.append(activity_type)
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute(sql, tuple(vals))
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+            valid, msg = Validators.validate_floor(activity_floor)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def unassign_employee(self, activity_id, employee_ssn):
-        cur = self.conn.cursor()
-        cur.execute("DELETE FROM activity_employees WHERE activity_id=%s AND employee_ssn=%s", (activity_id, employee_ssn))
-        self.conn.commit()
-        cur.close()
+            valid, msg = Validators.validate_room(activity_room_num)
+            if not valid:
+                return {"success": False, "error": msg}
 
-    def unassign_contractor(self, activity_id, contractor_id):
-        raise NotImplementedError("Contractor assignments removed; use company-level supervision if needed")
-
-    def assign_temp_employee(self, activity_id, temp_employee_ssn):
-        cur = self.conn.cursor()
-        cur.execute("INSERT INTO activity_temp_employees(activity_id, temp_employee_ssn) VALUES(%s, %s)", (activity_id, temp_employee_ssn))
-        self.conn.commit()
-        cur.close()
-
-    def delete(self, activity_id):
-        cur = self.conn.cursor()
-        cur.execute("DELETE FROM activity_employees WHERE activity_id=%s", (activity_id,))
-        # contractors removed
-        cur.execute("DELETE FROM activity_temp_employees WHERE activity_id=%s", (activity_id,))
-        cur.execute("DELETE FROM activity_locations WHERE activity_id=%s", (activity_id,))
-        cur.execute("DELETE FROM activities WHERE id=%s", (activity_id,))
-        self.conn.commit()
-        cur.close()
-
-    def cleaning_schedule(self, building, start_date, end_date):
-        validate_date(start_date)
-        validate_date(end_date)
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute(
+            db = DatabaseConnection()
+            query = """
+                INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, 
+                                    Activity_Building, Activity_Floor, Activity_RoomNum)
+                VALUES (%s, %s, %s, %s, %s, %s)
             """
-            SELECT a.id AS activity_id, a.activity_date, a.description, a.requires_chemical,
-                   CASE WHEN a.requires_chemical=1 THEN 1 ELSE 0 END AS unavailable,
-                   l.building, l.floor, l.room
-            FROM activities a
-            JOIN activity_locations al ON al.activity_id=a.id
-            JOIN locations l ON l.id=al.location_id
-            WHERE a.activity_type='cleaning'
-              AND l.building=%s
-              AND a.activity_date BETWEEN %s AND %s
-            ORDER BY a.activity_date ASC
-            """,
-            (building, start_date, end_date)
-        )
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+            
+            cursor = db.connection.cursor()
+            cursor.execute(query, (activity_time, activity_type, require_chemical, 
+                                 activity_building, activity_floor, activity_room_num))
+            db.connection.commit()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": {
+                "Activity_Time": activity_time,
+                "Activity_Type": activity_type,
+                "Require_Chemical": require_chemical,
+                "Activity_Building": activity_building,
+                "Activity_Floor": activity_floor,
+                "Activity_RoomNum": activity_room_num
+            }}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_activity(self, activity_time, activity_building, activity_floor, activity_room_num):
+        try:
+            ensure_not_empty(activity_time)
+            ensure_not_empty(activity_building)
+
+            db = DatabaseConnection()
+            query = """
+                SELECT * FROM Activity 
+                WHERE Activity_Time = %s AND Activity_Building = %s 
+                AND Activity_Floor = %s AND Activity_RoomNum = %s
+            """
+            
+            cursor = db.connection.cursor(dictionary=True)
+            cursor.execute(query, (activity_time, activity_building, activity_floor, activity_room_num))
+            result = cursor.fetchone()
+            cursor.close()
+            db.close()
+            
+            if result:
+                return {"success": True, "data": result}
+            else:
+                return {"success": False, "error": "Activity not found"}
+                
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def get_all_activities(self):
+        try:
+            db = DatabaseConnection()
+            query = "SELECT * FROM Activity ORDER BY Activity_Time DESC, Activity_Building, Activity_Floor"
+            
+            cursor = db.connection.cursor(dictionary=True)
+            cursor.execute(query)
+            results = cursor.fetchall()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": results}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def assign_manager_to_activity(self, manager_ssn, activity_time, activity_building, activity_floor, activity_room_num):
+        try:
+            ensure_not_empty(manager_ssn)
+            ensure_not_empty(activity_time)
+            ensure_not_empty(activity_building)
+
+            db = DatabaseConnection()
+            query = """
+                INSERT INTO Mid_Level_Manage_Activity (Manager_Ssn, Manage_Activity_Building, 
+                                                     Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            
+            cursor = db.connection.cursor()
+            cursor.execute(query, (manager_ssn, activity_building, activity_floor, activity_room_num, activity_time))
+            db.connection.commit()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": {
+                "Manager_Ssn": manager_ssn,
+                "Manage_Activity_Building": activity_building,
+                "Manage_Activity_Floor": activity_floor,
+                "Manage_Activity_RoomNum": activity_room_num,
+                "Manage_Activity_Time": activity_time
+            }}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def assign_employee_to_activity(self, working_time, working_building, working_floor, working_room_number, working_worker_ssn):
+        try:
+            ensure_not_empty(working_time)
+            ensure_not_empty(working_building)
+            ensure_not_empty(working_worker_ssn)
+
+            db = DatabaseConnection()
+            query = """
+                INSERT INTO Employee_Work_On (Working_Time, Working_Building, Working_Floor, 
+                                            Working_Room_number, Working_Worker_Ssn)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            
+            cursor = db.connection.cursor()
+            cursor.execute(query, (working_time, working_building, working_floor, working_room_number, working_worker_ssn))
+            db.connection.commit()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": {
+                "Working_Time": working_time,
+                "Working_Building": working_building,
+                "Working_Floor": working_floor,
+                "Working_Room_number": working_room_number,
+                "Working_Worker_Ssn": working_worker_ssn
+            }}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def assign_temp_employee_to_activity(self, temp_working_time, temp_working_building, temp_working_floor, temp_working_room_number, temp_working_worker_ssn):
+        try:
+            ensure_not_empty(temp_working_time)
+            ensure_not_empty(temp_working_building)
+            ensure_not_empty(temp_working_worker_ssn)
+
+            db = DatabaseConnection()
+            query = """
+                INSERT INTO Temp_Employee_Work_On (Temp_Working_Time, Temp_Working_Building, 
+                                                 Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            
+            cursor = db.connection.cursor()
+            cursor.execute(query, (temp_working_time, temp_working_building, temp_working_floor, 
+                                 temp_working_room_number, temp_working_worker_ssn))
+            db.connection.commit()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": {
+                "Temp_Working_Time": temp_working_time,
+                "Temp_Working_Building": temp_working_building,
+                "Temp_Working_Floor": temp_working_floor,
+                "Temp_Working_Room_number": temp_working_room_number,
+                "Temp_Working_Worker_Ssn": temp_working_worker_ssn
+            }}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def create_applied_to(self, applied_time, applied_building, applied_floor, applied_room_number, applied_reason):
+        try:
+            ensure_not_empty(applied_time)
+            ensure_not_empty(applied_building)
+            ensure_not_empty(applied_reason)
+
+            valid, msg = Validators.validate_date(applied_time)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            valid, msg = Validators.validate_building(applied_building)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            valid, msg = Validators.validate_floor(applied_floor)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            valid, msg = Validators.validate_room(applied_room_number)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            valid, msg = Validators.validate_applied_reason(applied_reason)
+            if not valid:
+                return {"success": False, "error": msg}
+
+            db = DatabaseConnection()
+            query = """
+                INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, 
+                                      Applied_Room_number, Applied_Reason)
+                VALUES (%s, %s, %s, %s, %s)
+            """
+            
+            cursor = db.connection.cursor()
+            cursor.execute(query, (applied_time, applied_building, applied_floor, applied_room_number, applied_reason))
+            db.connection.commit()
+            cursor.close()
+            db.close()
+            
+            return {"success": True, "data": {
+                "Applied_Time": applied_time,
+                "Applied_Building": applied_building,
+                "Applied_Floor": applied_floor,
+                "Applied_Room_number": applied_room_number,
+                "Applied_Reason": applied_reason
+            }}
+            
+        except Exception as e:
+            return {"success": False, "error": str(e)}
