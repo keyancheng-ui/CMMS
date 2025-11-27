@@ -5,7 +5,9 @@ from .validators import Validators
 class EmployeeDAO(BaseDAO):
 
     def get_all_employees(self):
-        return self.execute_query("SELECT * FROM Employee")
+        result = self.execute_query("SELECT * FROM Employee")
+        for tuple in result:
+            print(f"Ssn: {tuple[0]}, Name: {tuple[1]}, Level: {tuple[2]}")
 
     def get_employee_by_ssn(self, ssn):
         result = self.execute_query(
