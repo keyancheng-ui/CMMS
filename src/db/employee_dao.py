@@ -1,4 +1,5 @@
 from .base_dao import BaseDAO
+from .validators import Validators
 
 
 class EmployeeDAO(BaseDAO):
@@ -10,25 +11,44 @@ class EmployeeDAO(BaseDAO):
         result = self.execute_query(
             f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
         )
-        return result[0] if result else None
+        if len(result) > 0:
+            return result[0]
+        else:
+            print(f"Employee {ssn} not exist. Insert first or check the input format.")
+            return result
 
     def add_employee(self, ssn, name, emp_level):
-        return self.execute_update(
-            f"INSERT INTO Employee (Ssn, Name, Level) VALUES ('{ssn}', '{name}', '{emp_level}')",
-        )
+        if Validators.validate_employee_level(emp_level):
+            if len(self.get_employee_by_ssn(ssn)) == 0:
+                return self.execute_update(
+                    f"INSERT INTO Employee (Ssn, Name, Level) VALUES ('{ssn}', '{name}', '{emp_level}')"
+                )
+            else:
+                print("Employee already exist!")
+        else:
+            return Validators.validate_employee_level(emp_level)
 
     def get_employees_by_level(self, level):
-        return self.execute_query(
-            f"SELECT * FROM Employee WHERE Level = '{level}'",
-        )
+        if Validators.validate_employee_level(level):
+            result = self.execute_query(
+                f"SELECT * FROM Employee WHERE Level = '{level}'",
+            )
+            for row in result:
+                print(f"Ssn: {row[0]}, Name: {row[1]}, Level: {row[2]}")
+        else:
+            return Validators.validate_employee_level(level)
 
     def update_employee(self, ssn, new_level):
-        # check whether the employee exists
-        result = self.get_employee_by_ssn(ssn)
-        if len(result) > 0:
-            query = f"UPDATE Employee SET Level = '{new_level}' WHERE Ssn = '{ssn}'"
-            return self.execute_update(query)
+        # check whether the level is qualified
+        if Validators.validate_employee_level(new_level):
+            # check whether the employee exists
+            result = self.get_employee_by_ssn(ssn)
+            if len(result) > 0:
+                query = f"UPDATE Employee SET Level = '{new_level}' WHERE Ssn = '{ssn}'"
+                return self.execute_update(query)
+            else:
+                print("Employee not exists. Insert first.")
+                name = input(f"Enter the name of employee {ssn}: ")
+                self.add_employee(ssn, name, new_level)
         else:
-            print("Employee not exists. Insert first.")
-            name = input(f"Enter the name of employee {ssn}: ")
-            self.add_employee(ssn, name, new_level)
+            return Validators.validate_employee_level(new_level)
