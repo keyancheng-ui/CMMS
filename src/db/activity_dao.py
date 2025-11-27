@@ -9,9 +9,6 @@ class ActivityDAO(BaseDAO):
             query = f"SELECT * FROM Activity WHERE Activity_Time = '{activity_time}' AND Activity_Building = '{activity_building}' AND Activity_Floor = '{activity_floor}' AND Activity_RoomNum = '{activity_room_num}'"
             result = self.execute_query(query)
 
-            for tuple in result:
-                print(f"Activity_time: {tuple[0]}, Activity_type: {tuple[1]}, Require_chemical: {tuple[2]}, Activity_building: {tuple[3]}, Activity_floor: {tuple[4]}, Activity_room_num: {tuple[5]}")
-
             return result
 
         except Exception as e:
@@ -59,13 +56,7 @@ class ActivityDAO(BaseDAO):
 
             result = self.execute_update(query)
 
-            return {"success": True, "data": {
-                "Manager_Ssn": manager_ssn,
-                "Manage_Activity_Building": activity_building,
-                "Manage_Activity_Floor": activity_floor,
-                "Manage_Activity_RoomNum": activity_room_num,
-                "Manage_Activity_Time": activity_time
-            }}
+            return result
 
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -81,13 +72,7 @@ class ActivityDAO(BaseDAO):
 
             result = self.execute_update(query)
 
-            return {"success": True, "data": {
-                "Working_Time": working_time,
-                "Working_Building": working_building,
-                "Working_Floor": working_floor,
-                "Working_Room_number": working_room_number,
-                "Working_Worker_Ssn": working_worker_ssn
-            }}
+            return result
 
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -103,13 +88,7 @@ class ActivityDAO(BaseDAO):
 
             result = self.execute_update(query)
 
-            return {"success": True, "data": {
-                "Temp_Working_Time": temp_working_time,
-                "Temp_Working_Building": temp_working_building,
-                "Temp_Working_Floor": temp_working_floor,
-                "Temp_Working_Room_number": temp_working_room_number,
-                "Temp_Working_Worker_Ssn": temp_working_worker_ssn
-            }}
+            return result
 
         except Exception as e:
             return {"success": False, "error": str(e)}
@@ -132,13 +111,7 @@ class ActivityDAO(BaseDAO):
 
             result = self.execute_update(query)
 
-            return {"success": True, "data": {
-                "Applied_Time": applied_time,
-                "Applied_Building": applied_building,
-                "Applied_Floor": applied_floor,
-                "Applied_Room_number": applied_room_number,
-                "Applied_Reason": applied_reason
-            }}
+            return result
 
         except Exception as e:
             return {"success": False, "error": str(e)}
