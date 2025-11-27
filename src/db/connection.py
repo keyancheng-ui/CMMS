@@ -23,5 +23,23 @@ class DatabaseConnection:
         cursor.close()
         print("sql script successfully executed")
 
+    # execute query instruction (SELECT)
+    def execute_query(self, query):
+        cursor = self.connection.cursor(dictionary=True)
+        cursor.execute(query)
+        self.connection.commit()
+        result = cursor.fetchall()
+        cursor.close()
+        return result
+
+    # execute update instruction (UPDATE, INSERT, DELETE)
+    def execute_update(self, query):
+        cursor = self.connection.cursor()
+        cursor.execute(query)
+        self.connection.commit()
+        result = cursor.rowcount
+        cursor.close()
+        return result
+
     def close(self):
         self.connection.close()
