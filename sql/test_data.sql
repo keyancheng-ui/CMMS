@@ -55,11 +55,11 @@ VALUES
 ('1000000003', 'Tech_Building', 2, 204),     -- 中层王五办公室
 ('1000000007', 'Tech_Building', 3, 305),     -- 中层吴九办公室
 ('1000000010', 'Admin_Building', 2, 207),    -- 高管冯十二办公室
-NULL, 'Main_Building', 1, 102,               -- 无归属人办公室
-NULL, 'Main_Building', 2, 201,               -- 无归属人办公室
-NULL, 'Tech_Building', 1, 103,               -- 无归属人办公室
-NULL, 'Admin_Building', 1, 106,              -- 无归属人办公室
-NULL, 'Service_Building', 1, 109,            -- 无归属人办公室
+(NULL, 'Main_Building', 1, 102),               -- 无归属人办公室
+(NULL, 'Main_Building', 2, 201),               -- 无归属人办公室
+(NULL, 'Tech_Building', 1, 103),               -- 无归属人办公室
+(NULL, 'Admin_Building', 1, 106),              -- 无归属人办公室
+(NULL, 'Service_Building', 1, 109),            -- 无归属人办公室
 ('1000000002', 'Service_Building', 2, 210),  -- 中层李四备用办公室
 ('1000000003', 'Main_Building', 3, 301);     -- 中层王五备用办公室
 
