@@ -123,11 +123,12 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
 
   Manage_Activity_Time DATE NOT NULL,
 
-  CONSTRAINT fk_manage_activity_location_and_time FOREIGN KEY (Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
-  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum, Activity_Time)
+  CONSTRAINT fk_manage_activity_location_and_time FOREIGN KEY (Manage_Activity_Time, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum)
+  REFERENCES Activity (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
   ON UPDATE CASCADE,
 
-  PRIMARY KEY ( Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
+
+  PRIMARY KEY (Manage_Activity_Time, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum)
 );
 
 CREATE TABLE IF NOT EXISTS Employee_Work_On (
