@@ -2,29 +2,29 @@ import re
 from datetime import datetime, date
 from typing import Tuple
 
+
 class Validators:
-    @staticmethod
-    def validate_ssn(ssn: str) -> Tuple[bool, str]:
-        if not ssn or len(ssn.strip()) == 0:
-            return False, "SSN cannot be empty"
-        if len(ssn) > 20:
-            return False, "SSN must not exceed 20 characters"
-        return True, "Valid SSN"
 
     @staticmethod
-    def validate_name(name: str) -> Tuple[bool, str]:
-        if not name or len(name.strip()) < 2:
-            return False, "Name must be at least 2 characters long"
-        if len(name) > 100:
-            return False, "Name must not exceed 100 characters"
-        return True, "Valid name"
-
-    @staticmethod
-    def validate_employee_level(level: str) -> Tuple[bool, str]:
+    # check the validation of employee level
+    def validate_employee_level(level):
         valid_levels = ['executive officer', 'mid_level manager', 'base_level worker']
         if level not in valid_levels:
-            return False, f"Employee level must be one of: {', '.join(valid_levels)}"
-        return True, "Valid employee level"
+            print(f"Employee level must be in [{valid_levels[0]}, {valid_levels[1]}, {valid_levels[2]}]")
+            return False
+        return True
+
+    @staticmethod
+    # check the validation of contractor company name
+    def validate_company_name(company_name):
+        if not company_name or len(company_name) == 0:
+            print("Company name cannot be empty. Input again.")
+            return False
+        elif len(company_name) > 100:
+            print("Company name is too long.")
+            return False
+        else:
+            return True
 
     @staticmethod
     def validate_activity_type(activity_type: str) -> Tuple[bool, str]:
@@ -62,14 +62,6 @@ class Validators:
         return True, "Valid room number"
 
     @staticmethod
-    def validate_company_name(company: str) -> Tuple[bool, str]:
-        if not company or len(company.strip()) == 0:
-            return False, "Company name cannot be empty"
-        if len(company) > 100:
-            return False, "Company name must not exceed 100 characters"
-        return True, "Valid company name"
-
-    @staticmethod
     def validate_applied_reason(reason: str) -> Tuple[bool, str]:
         if not reason or len(reason.strip()) == 0:
             return False, "Applied reason cannot be empty"
@@ -95,15 +87,15 @@ class Validators:
             return False, "Require_Chemical must be 0 or 1"
         return True, "Valid chemical requirement"
 
-def validate_date(date_str: str) -> None:
-    ok, msg = Validators.validate_date(date_str)
-    if not ok:
-        raise ValueError(msg)
+    def validate_date(date_str: str) -> None:
+        ok, msg = Validators.validate_date(date_str)
+        if not ok:
+            raise ValueError(msg)
 
 def ensure_not_empty(value: str) -> None:
-    if not value or not str(value).strip():
-        raise ValueError("value cannot be empty")
+        if not value or not str(value).strip():
+            raise ValueError("value cannot be empty")
 
 def ensure_distinct(a: str, b: str) -> None:
-    if a == b:
-        raise ValueError("values must be distinct")
+        if a == b:
+            raise ValueError("values must be distinct")
