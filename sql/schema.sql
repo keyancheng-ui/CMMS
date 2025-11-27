@@ -77,13 +77,12 @@ CREATE TABLE IF NOT EXISTS TempSupervise (
 
 CREATE TABLE IF NOT EXISTS Contractor_Company (
   Temp_Employee_Ssn CHAR(20) PRIMARY KEY,
-  Company_name CHAR(100),
   
   CONSTRAINT fk_temp_employee_company FOREIGN KEY (Temp_Employee_Ssn)
   REFERENCES Temporary_Employee(TempSsn)
   ON UPDATE CASCADE,
   
-  name VARCHAR(100)
+  Company_name VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS Activity (
