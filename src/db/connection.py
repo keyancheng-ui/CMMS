@@ -22,7 +22,6 @@ class DatabaseConnection:
 
         self.connection.commit() # write commands back to the database
         cursor.close()
-        print("sql script successfully executed")
 
     # execute query instruction (SELECT)
     def execute_query(self, query):
