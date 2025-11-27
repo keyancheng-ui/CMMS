@@ -1,5 +1,6 @@
 from .connection import DatabaseConnection
 
+
 class BaseDAO:
 
     # connect to current database
