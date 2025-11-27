@@ -149,38 +149,29 @@ CREATE TABLE IF NOT EXISTS Employee_Work_On (
   
   PRIMARY KEY (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn),
   
-  CONSTRAINT fk_working_activity_location FOREIGN KEY ( Working_Building,  Working_Floor,  Working_Room_number)
-  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum)
+  CONSTRAINT fk_working_activity_complete FOREIGN KEY (Working_Time, Working_Building, Working_Floor, Working_Room_number)
+  REFERENCES Activity (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
   ON UPDATE CASCADE,
 
-  CONSTRAINT fk_working_activity_time FOREIGN KEY ( Working_Time)
-  REFERENCES Activity (Activity_Time)
-  ON UPDATE CASCADE,
-
-  CONSTRAINT fk_working_employee_Ssn FOREIGN KEY ( Working_Worker_Ssn)
+  CONSTRAINT fk_working_employee_Ssn FOREIGN KEY (Working_Worker_Ssn)
   REFERENCES Employee (Ssn)
   ON UPDATE CASCADE
-
 );
 
 CREATE TABLE IF NOT EXISTS Temp_Employee_Work_On (
-  
+
   Temp_Working_Time DATE NOT NULL,
   Temp_Working_Building CHAR(20) NOT NULL,
   Temp_Working_Floor INT NOT NULL,
   Temp_Working_Room_number INT NOT NULL,
 
-  
-  Temp_Working_Worker_Ssn CHAR(20) NOT NULL,
-    
-  PRIMARY KEY (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn),
-  
-  CONSTRAINT fk_temp_working_activity_location FOREIGN KEY ( Temp_Working_Building,  Temp_Working_Floor,  Temp_Working_Room_number)
-  REFERENCES Activity (Activity_Building, Activity_Floor, Activity_RoomNum)
-  ON UPDATE CASCADE,
 
-  CONSTRAINT fk_temp_working_activity_time FOREIGN KEY ( Temp_Working_Time)
-  REFERENCES Activity (Activity_Time)
+  Temp_Working_Worker_Ssn CHAR(20) NOT NULL,
+
+  PRIMARY KEY (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn),
+
+CONSTRAINT fk_temp_working_activity_complete FOREIGN KEY (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number)
+  REFERENCES Activity (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
   ON UPDATE CASCADE,
 
   CONSTRAINT fk_temp_working_employee_Ssn FOREIGN KEY ( Temp_Working_Worker_Ssn)
@@ -199,30 +190,7 @@ CREATE TABLE IF NOT EXISTS Applied_To (
     
   PRIMARY KEY (Applied_Time, Applied_Building,  Applied_Floor,  Applied_Room_number),
   
-  CONSTRAINT fk_applied_location FOREIGN KEY (Applied_Building,  Applied_Floor,  Applied_Room_number)
-  REFERENCES Location (Building, Floor, Room_number)
-  ON UPDATE CASCADE,
-
-  CONSTRAINT fk_applied_time FOREIGN KEY ( Applied_Time)
-  REFERENCES Activity (Activity_Time)
+   CONSTRAINT fk_applied_activity FOREIGN KEY (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number)
+  REFERENCES Activity (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
   ON UPDATE CASCADE
 );
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
