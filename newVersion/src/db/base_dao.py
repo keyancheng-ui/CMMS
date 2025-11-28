@@ -1,4 +1,4 @@
-from src.db.connection import DatabaseConnection
+from .connection import DatabaseConnection
 
 
 class BaseDAO:

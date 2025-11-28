@@ -2,12 +2,7 @@
 from .connection import DatabaseConnection
 
 from .validators import *
-from .employee_dao import EmployeeDAO
-from .location_dao import LocationDAO
-from .activity_dao import ActivityDAO
-from .report_dao import ReportDAO
-from .supervision_dao import SupervisionDAO
-from .temp_employee_dao import TempEmployeeDAO
+from .quick_query_dao import QuickQueryDAO
 
 import os
 
@@ -67,12 +62,7 @@ def initialize_database(host='localhost', user='root', password='', database='ap
 
 __all__ = [
     'DatabaseConnection',
-    'EmployeeDAO',
-    'LocationDAO',
-    'ActivityDAO',
-    'ReportDAO',
-    'SupervisionDAO',
-    'TempEmployeeDAO',
+    'QuickQueryDAO',
     'get_database_schema',
     'get_test_data',
     'initialize_database'

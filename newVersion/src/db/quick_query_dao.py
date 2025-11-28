@@ -1,35 +1,29 @@
-from .connection import DatabaseConnection
 from .base_dao import BaseDAO
 from .validators import Validators, ensure_not_empty
 
 
-class ActivityDAO(BaseDAO):
+class QuickQueryDAO(BaseDAO):
 
+    # ------ these are all the functions related to the "activity" entity set ------
+
+    # 1. get the basic information of an activity by the primary key
     def get_activity(self, activity_time, activity_building, activity_floor, activity_room_num):
-        try:
-            query = f"SELECT * FROM Activity WHERE Activity_Time = '{activity_time}' AND Activity_Building = '{activity_building}' AND Activity_Floor = '{activity_floor}' AND Activity_RoomNum = '{activity_room_num}'"
-            result = self.execute_query(query)
-            return result
+        query = f"SELECT * FROM Activity WHERE Activity_Time = '{activity_time}' AND Activity_Building = '{activity_building}' AND Activity_Floor = '{activity_floor}' AND Activity_RoomNum = '{activity_room_num}'"
+        result = self.execute_query(query)
+        print(f"activity type: {result[0]['Activity_Type']}, chemical required: {result[0]['Require_Chemical']}")
+    # finished
 
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
+    # 2. create a new activity
     def create_activity(self, activity_time, activity_type, require_chemical, activity_building, activity_floor, activity_room_num):
-        try:
-            ensure_not_empty(activity_time)
-            ensure_not_empty(activity_type)
-            ensure_not_empty(activity_building)
+        if Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num):
+            if self.get_activity(activity_time, activity_building, activity_floor, activity_room_num).len() != 0:
+                query = f"INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum) VALUES ('{activity_time}', '{activity_type}', '{require_chemical}', '{activity_building}', '{activity_floor}', '{activity_room_num}')"
+                return self.execute_update(query)
 
-            if Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num):
-                if self.get_activity(activity_time, activity_building, activity_floor, activity_room_num).len() != 0:
-                    query = f"INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum) VALUES ('{activity_time}', '{activity_type}', '{require_chemical}', '{activity_building}', '{activity_floor}', '{activity_room_num}')"
-                    return self.execute_update(query)
+        else:
+            return Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num)
 
-            else:
-                return Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num)
 
-        except Exception as e:
-            return {"success": False, "error": str(e)}
 
     def get_all_activities(self):
         try:
@@ -157,18 +151,19 @@ class ActivityDAO(BaseDAO):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+from .base_dao import BaseDAO
+from .validators import Validators
+
 
 class EmployeeDAO(BaseDAO):
 
-    # Query regarding employees:
-
-    # 1.get all current standard employees in the database
+    # get all current standard employees in the database
     def get_all_employees(self):
         result = self.execute_query("SELECT * FROM Employee")
         for row in result:
             print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
 
-    # 2.get an employee's name by its ssn
+    # get an employee's name by its ssn
     def get_employee_by_ssn(self, ssn):
         result = self.execute_query(
             f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
@@ -178,7 +173,7 @@ class EmployeeDAO(BaseDAO):
         else:
             print(f"Employee {ssn} not exist. Insert first or check the input format.")
 
-    # 3.add new employees
+    # add new employees
     def add_employee(self, ssn, name, emp_level):
         if Validators.validate_employee_level(emp_level):
             result = self.execute_query(

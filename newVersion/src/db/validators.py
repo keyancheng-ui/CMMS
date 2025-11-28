@@ -1,9 +1,53 @@
-
-from datetime import datetime, date
+from datetime import datetime
 from typing import Tuple
 
 
 class Validators:
+
+    # ------ these are all functions to check validation for all input about "activity" ------
+
+    # 1. check the validation of activity type
+    @staticmethod
+    def validate_activity_type(activity_type):
+        valid_types = ['daily campus cleaning', 'campus ageing', 'weather-related issues']
+        if activity_type not in valid_types:
+            return False
+        return True
+    # finished
+
+    # 2. check the validation of activity time
+    @staticmethod
+    def validate_date(date_str):
+        try:
+            datetime.strptime(date_str, '%Y-%m-%d')
+            return True
+        except ValueError:
+            return False
+    # finished
+
+    # 3. check the validation of floor number
+    @staticmethod
+    def validate_floor(floor):
+        if floor < 0:
+            return False
+        return True
+    # finished
+
+    # 4. check the validation of room number
+    @staticmethod
+    def validate_room(room):
+        if room <= 100:
+            return False
+        return True
+    # finished
+
+    # 5. check the validation of chemical required condition
+    @staticmethod
+    def validate_chemical_requirement(require_chemical):
+        if require_chemical not in [0, 1]:
+            return False
+        return True
+    # finished
 
     @staticmethod
     # check the validation of employee level
@@ -35,66 +79,6 @@ class Validators:
             return True
 
     @staticmethod
-    #手工自制楼名检查函数
-    def validate_building(building) -> Tuple[bool, str]:
-        if not building or len(building.strip()) == 0:
-            return False, "Building cannot be empty"
-        if len(building) > 20:
-            return False, "Building name must not exceed 20 characters"
-        return True, "Building Insertion Succeeded"
-
-    @staticmethod
-    # 手工自制层数检查函数（只能为非负整数）
-    def validate_floor(floor) -> Tuple[bool, str]:
-        if floor < 0:
-            return False,
-        if not isinstance(floor, int):
-            return False, "Floor must be an integer"
-        return True, "Floor Insertion Succeeded"
-
-    @staticmethod
-    # 手工自制房号检查函数
-    def validate_room(room) -> Tuple[bool, str]:
-        if room <= 0:
-            return False, "Room number must be positive"
-        if room <= 100:
-            return False, "Room number must be greater than 100"
-        if not isinstance(room, int):
-            return False, "Floor must be an integer"
-        return True, "Valid room number"
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    @staticmethod
-    def validate_activity_type(activity_type: str) -> Tuple[bool, str]:
-        valid_types = ['daily campus cleaning', 'campus ageing', 'weather-related issues']
-        if activity_type not in valid_types:
-            return False, f"Activity type must be one of: {', '.join(valid_types)}"
-        return True, "Valid activity type"
-
-    @staticmethod
-    def validate_date(date_str: str) -> Tuple[bool, str]:
-        try:
-            datetime.strptime(date_str, '%Y-%m-%d')
-            return True, "Valid date"
-        except ValueError:
-            return False, "Invalid date format. Use YYYY-MM-DD"
-
-
-
-    @staticmethod
     def validate_applied_reason(reason: str) -> Tuple[bool, str]:
         if not reason or len(reason.strip()) == 0:
             return False, "Applied reason cannot be empty"
@@ -114,19 +98,9 @@ class Validators:
             return False, f"{field1} and {field2} cannot be the same"
         return True, "IDs are different"
 
-    @staticmethod
-    def validate_chemical_requirement(require_chemical: int) -> Tuple[bool, str]:
-        if require_chemical not in [0, 1]:
-            return False, "Require_Chemical must be 0 or 1"
-        return True, "Valid chemical requirement"
 
-    def validate_date(date_str: str) -> None:
-        ok, msg = Validators.validate_date(date_str)
-        if not ok:
-            raise ValueError(msg)
+
 
 def ensure_not_empty(value: str) -> None:
         if not value or not str(value).strip():
             raise ValueError("value cannot be empty")
-
-
