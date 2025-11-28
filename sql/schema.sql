@@ -18,7 +18,7 @@ CREATE TABLE IF NOT EXISTS  Location (
   Floor INT NOT NULL,
   Room_number INT NOT NULL,
   PRIMARY KEY (Building, Floor, Room_number)
-  
+
 );
 
 
@@ -75,15 +75,7 @@ CREATE TABLE IF NOT EXISTS TempSupervise (
 
 
 
-CREATE TABLE IF NOT EXISTS Contractor_Company (
-  Temp_Employee_Ssn CHAR(20) PRIMARY KEY,
-  
-  CONSTRAINT fk_temp_employee_company FOREIGN KEY (Temp_Employee_Ssn)
-  REFERENCES Temporary_Employee(TempSsn)
-  ON UPDATE CASCADE,
-  
-  Company_name VARCHAR(100)
-);
+
 
 CREATE TABLE IF NOT EXISTS Activity (
   

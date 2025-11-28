@@ -121,23 +121,7 @@ VALUES
 ('1000000007', 'T200000015');  -- 中层吴九 → 临时墙面翻新
 
 -- 7. Contractor_Company 表（15条数据）- 依赖 Temporary_Employee
-INSERT INTO Contractor_Company (Temp_Employee_Ssn, Company_name)
-VALUES
-('T200000001', '保洁服务有限公司'),
-('T200000002', '维修服务外包公司'),
-('T200000003', '绿化养护合作公司'),
-('T200000004', '设备检测外包公司'),
-('T200000005', '水电维修服务公司'),
-('T200000006', '外墙清洁服务公司'),
-('T200000007', '垃圾清运合作公司'),
-('T200000008', '空调维护外包公司'),
-('T200000009', '消防检查服务公司'),
-('T200000010', '电梯维保外包公司'),
-('T200000011', '管道疏通服务公司'),
-('T200000012', '地毯清洁服务公司'),
-('T200000013', '门窗维修外包公司'),
-('T200000014', '灯具更换服务公司'),
-('T200000015', '墙面翻新服务公司');
+
 
 -- 8. Activity 表（15条数据）- 依赖 Location
 INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum)
