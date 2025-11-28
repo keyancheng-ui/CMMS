@@ -1,7 +1,7 @@
 from db import initialize_database
 
-from logic.employee_service import EmployeeService
-from logic.supervision_service import SupervisionService
+from logic.general_serice import EmployeeService
+
 
 
 def main():
