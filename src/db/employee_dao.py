@@ -20,6 +20,7 @@ class EmployeeDAO(BaseDAO):
         else:
             print(f"Employee {ssn} not exist. Insert first or check the input format.")
 
+    # add new employees
     def add_employee(self, ssn, name, emp_level):
         if Validators.validate_employee_level(emp_level):
             result = self.execute_query(
@@ -32,29 +33,31 @@ class EmployeeDAO(BaseDAO):
             else:
                 print("Employee already exist!")
         else:
-            Validators.validate_employee_level(emp_level)
+            return
 
+    # get employee by levels
     def get_employees_by_level(self, level):
         if Validators.validate_employee_level(level):
             result = self.execute_query(
-                f"SELECT * FROM Employee WHERE Level = '{level}'",
+                f"SELECT * FROM Employee WHERE Emp_Level = '{level}'",
             )
             for row in result:
-                print(f"Ssn: {row[0]}, Name: {row[1]}, Level: {row[2]}")
+                print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
         else:
-            return Validators.validate_employee_level(level)
+            return
 
+    # promote an employee
     def update_employee(self, ssn, new_level):
-        # check whether the level is qualified
         if Validators.validate_employee_level(new_level):
-            # check whether the employee exists
-            result = self.get_employee_by_ssn(ssn)
+            result = self.execute_query(
+                f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
+            )
             if len(result) > 0:
-                query = f"UPDATE Employee SET Level = '{new_level}' WHERE Ssn = '{ssn}'"
+                query = f"UPDATE Employee SET Emp_Level = '{new_level}' WHERE Ssn = '{ssn}'"
                 return self.execute_update(query)
             else:
                 print("Employee not exists. Insert first.")
                 name = input(f"Enter the name of employee {ssn}: ")
                 self.add_employee(ssn, name, new_level)
         else:
-            return Validators.validate_employee_level(new_level)
+            return

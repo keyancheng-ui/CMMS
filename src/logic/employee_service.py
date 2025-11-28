@@ -8,6 +8,7 @@ class EmployeeService:
         self.employee_dao = EmployeeDAO()
         self.location_dao = LocationDAO()
 
+    # register employee from the user-service level
     def register_employee(self, ssn, name, level):
         self.employee_dao.add_employee(ssn, name, level)
 
@@ -18,6 +19,14 @@ class EmployeeService:
     # get all employees from the user-service level
     def get_current_employee(self):
         self.employee_dao.get_all_employees()
+
+    # get employees by their level
+    def fetch_employee_by_level(self, level):
+        self.employee_dao.get_employees_by_level(level)
+
+    # promote an employee
+    def employee_promotion(self, ssn, level):
+        self.employee_dao.update_employee(ssn, level)
 
 
 
