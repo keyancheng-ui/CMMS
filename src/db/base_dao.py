@@ -4,11 +4,17 @@ from .connection import DatabaseConnection
 class BaseDAO:
 
     # connect to current database
-    def __init__(self, db_connection=None):
-        if db_connection:
+    def __init__(self, db_connection=None, password=None):
+        if db_connection is not None:
+            # 如果传了现成的连接，直接用
             self.db = db_connection
+        elif password is not None:
+            # 如果传了密码，用它创建连接
+            self.db = DatabaseConnection(password=password, database='appdb')
         else:
-            self.db = DatabaseConnection(password=input("Enter your own mySQL secret: "), database='appdb')
+            # 都没传，才让用户输入
+            pwd = input("Enter your own mySQL secret: ")
+            self.db = DatabaseConnection(password=pwd, database='appdb')
 
     # to execute query instruction
     def execute_query(self, query):

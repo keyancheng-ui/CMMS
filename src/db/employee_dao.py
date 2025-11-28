@@ -3,6 +3,8 @@ from .validators import Validators
 
 
 class EmployeeDAO(BaseDAO):
+    def __init__(self, db_connection=None, password=None):
+        super().__init__(db_connection=db_connection, password=password)
 
     # get all current standard employees in the database
     def get_all_employees(self):

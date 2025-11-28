@@ -52,13 +52,15 @@ def main():
     print("start to initialize database...")
 
     # use all default values
-    initialize_database(password=input("Input your own mySQL password: "))
+
+    the_f__kingpassword = input("Input your own mySQL password: ")  # 👈 保存密码到变量
+    initialize_database(password=the_f__kingpassword)
 
     print("database initialization finished")
     print("the system is now ready for use")
     print("this is our Employee related query functions. What do you want to look up?")
-    print("get_all_employees(self):\nget_employee_by_ssn(self, ssn):\nadd_employee(self, ssn, name, emp_level):\nget_employees_by_level(self, level):\nupdate_employee(self, ssn, new_level):\ndelete_employee(self, ssn):")
-    employee_dao = EmployeeDAO()
+    print("get_all_employees():\nget_employee_by_ssn(ssn):\nadd_employee(ssn, name, emp_level):\nget_employees_by_level(level):\nupdate_employee(ssn, new_level):\ndelete_employee(ssn):")
+    employee_dao = EmployeeDAO(the_f__kingpassword)
     while True:
         try:
             user_input = input(">>> ").strip()

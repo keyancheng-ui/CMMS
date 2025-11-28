@@ -68,7 +68,6 @@ def initialize_database(host='localhost', user='root', password='', database='ap
 __all__ = [
     'DatabaseConnection',
     'EmployeeDAO',
-    'ContractorDAO',
     'LocationDAO',
     'ActivityDAO',
     'ReportDAO',
