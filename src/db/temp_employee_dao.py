@@ -152,9 +152,6 @@ class TempEmployeeDAO(BaseDAO):
         return self.execute_update(delete_employee_query)
 
     def update_contractor_company(self, temp_employee_ssn, new_company_name):
-        """
-        更新承包商公司名称
-        """
         ensure_not_empty(temp_employee_ssn)
         ensure_not_empty(new_company_name)
 
