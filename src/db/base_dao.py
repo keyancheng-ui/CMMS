@@ -8,7 +8,7 @@ class BaseDAO:
         if db_connection:
             self.db = db_connection
         else:
-            self.db = DatabaseConnection(database='appdb')
+            self.db = DatabaseConnection(password=input("Enter your own mySQL secret: "), database='appdb')
 
     # to execute query instruction
     def execute_query(self, query):
