@@ -10,12 +10,12 @@ class TempEmployeeDAO(BaseDAO):
         ensure_not_empty(temp_ssn)
         ensure_not_empty(company_name)
         result = self.execute_query(
-            f"SELECT * FROM Temporary_Employee WHERE Ssn = '{temp_ssn}'",
+            f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'",
         )
-        if(result.len==0):
+        if(len(result)==0):
             query = f"INSERT INTO Temporary_Employee (TempSsn, Company_name) VALUES ('{temp_ssn}', '{company_name}')"
             self.execute_update(query)
-            print("Add new temporay employee: (ssn)",temp_ssn)
+            print("Add new temporary employee: (ssn)",temp_ssn)
         else:
             print(f"Temporary employee {temp_ssn} exist.")
 
@@ -23,7 +23,7 @@ class TempEmployeeDAO(BaseDAO):
         ensure_not_empty(temp_ssn)
         query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         result = self.execute_query(query)
-        if result.len != 0:
+        if len(result) != 0:
             print("Get ",result[0]['TempSsn']," ",result[0]['Company_name'])
             return result
         else:
@@ -34,7 +34,7 @@ class TempEmployeeDAO(BaseDAO):
     def get_all_temp_employees(self):
         query = "SELECT * FROM Temporary_Employee ORDER BY Company_name, TempSsn"
         result = self.execute_query(query)
-        if result.len != 0:
+        if len(result) != 0:
             for row in result:
                 print(f"TempSsn: {row['TempSsn']}, Company_name: {row['Company_name']}")
             return result
@@ -44,7 +44,7 @@ class TempEmployeeDAO(BaseDAO):
 
     def delete_temp_employee(self, temp_ssn):
         ensure_not_empty(temp_ssn)
-        
+
         check_query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         result = self.execute_query(check_query)
 
