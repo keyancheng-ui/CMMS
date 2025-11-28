@@ -74,3 +74,10 @@ class EmployeeDAO(BaseDAO):
             return self.execute_update(query)
         else:
             print("Employee not exists. Insert first.")
+
+    def close(self):
+        """Close the database connection."""
+        if hasattr(self, 'db') and self.db is not None:
+            print("Closing database connection.")
+            self.db.close()
+            self.db = None

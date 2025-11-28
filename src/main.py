@@ -84,14 +84,10 @@ def main():
             result = method(*args)
 
             # 打印结果（可根据需要美化）
-            if result is None:
-                print("操作成功（无返回值）")
-            elif isinstance(result, list):
-                print(f"返回 {len(result)} 条记录：")
-                for item in result:
-                    print("  ", item)
-            else:
-                print("结果：", result)
+
+            print("操作成功（无返回值）,结果为以上打印数据")
+
+
 
         except Exception as e:
             print("❌ 错误：", e)
