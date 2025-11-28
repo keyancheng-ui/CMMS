@@ -33,7 +33,6 @@ class DatabaseConnection:
             if statement:
                 cursor.execute(statement)
 
-        self.connection.commit()
         result = cursor.fetchall()
         cursor.close()
         return result

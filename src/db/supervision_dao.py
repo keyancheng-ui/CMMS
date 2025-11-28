@@ -1,4 +1,4 @@
-from db.validators import ensure_distinct
+from .validators import ensure_distinct
 
 class SupervisionDAO:
     def __init__(self, conn):
