@@ -34,7 +34,7 @@ VALUES
 -- 2. Employee 表（12条数据）- 无外键依赖
 INSERT INTO Employee (Ssn, Name, Emp_Level)
 VALUES
-('1000000001', '张三', 'executive officer'),  -- 高管
+('1', '张三', 'executive officer'),  -- 高管
 ('1000000002', '李四', 'mid_level manager'),  -- 中层经理
 ('1000000003', '王五', 'mid_level manager'),  -- 中层经理
 ('1000000004', '赵六', 'base_level worker'),  -- 基层员工
