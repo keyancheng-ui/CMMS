@@ -101,6 +101,3 @@ class Validators:
 
 
 
-def ensure_not_empty(value: str) -> None:
-        if not value or not str(value).strip():
-            raise ValueError("value cannot be empty")
