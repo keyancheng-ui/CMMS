@@ -121,7 +121,7 @@ VALUES
 ('1000000007', 'T200000015');  -- 中层吴九 → 临时墙面翻新
 
 -- 7. Contractor_Company 表（15条数据）- 依赖 Temporary_Employee
-INSERT INTO Contractor_Company (Temp_Employee_Ssn, Company_name)
+INSERT INTO Contractor_Company (Temp_Employee_Ssn, name)
 VALUES
 ('T200000001', '保洁服务有限公司'),
 ('T200000002', '维修服务外包公司'),
