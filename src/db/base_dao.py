@@ -4,7 +4,7 @@ from .connection import DatabaseConnection
 class BaseDAO:
 
     # connect to current database
-    def __init__(self, db_connection=None, password=None):
+    def __init__(self, db_connection, password):
         if db_connection is not None:
             # 如果传了现成的连接，直接用
             self.db = db_connection
