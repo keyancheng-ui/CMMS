@@ -1,5 +1,4 @@
 from .base_dao import BaseDAO
-from .validators import Validators, ensure_not_empty
 
 
 class QuickQueryDAO(BaseDAO):
@@ -11,107 +10,84 @@ class QuickQueryDAO(BaseDAO):
         query = f"SELECT * FROM Activity WHERE Activity_Time = '{activity_time}' AND Activity_Building = '{activity_building}' AND Activity_Floor = '{activity_floor}' AND Activity_RoomNum = '{activity_room_num}'"
         result = self.execute_query(query)
         print(f"activity type: {result[0]['Activity_Type']}, chemical required: {result[0]['Require_Chemical']}")
+        return result
     # finished
 
     # 2. create a new activity
     def create_activity(self, activity_time, activity_type, require_chemical, activity_building, activity_floor, activity_room_num):
-        if Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num):
-            if self.get_activity(activity_time, activity_building, activity_floor, activity_room_num).len() != 0:
+        if Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num):
+            query = f"SELECT * FROM Activity WHERE Activity_Time = '{activity_time}' AND Activity_Building = '{activity_building}' AND Activity_Floor = '{activity_floor}' AND Activity_RoomNum = '{activity_room_num}'"
+            result = self.execute_query(query)
+            if len(result) == 0:
                 query = f"INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum) VALUES ('{activity_time}', '{activity_type}', '{require_chemical}', '{activity_building}', '{activity_floor}', '{activity_room_num}')"
                 return self.execute_update(query)
-
         else:
-            return Validators.validate_date(activity_time) and Validators.validate_activity_type(activity_type) and Validators.validate_chemical_requirement(require_chemical) and Validators.validate_building(activity_building) and Validators.validate_floor(activity_floor) and Validators.validate_room(activity_room_num)
+            print("Input not qualified! Check the user manual!")
+    # finished
 
-
-
+    # 3. get all current activities
     def get_all_activities(self):
-        try:
-            query = "SELECT * FROM Activity ORDER BY Activity_Time DESC, Activity_Building, Activity_Floor"
-            result = self.execute_query(query)
+        query = "SELECT * FROM Activity ORDER BY Activity_Time DESC, Activity_Building, Activity_Floor"
+        result = self.execute_query(query)
+        for row in result:
+            print(
+                f"Activity_time: {row['Activity_Time']}, Activity_type: {row['Activity_Type']}, Require_chemical: {row['Require_chemical']}, Activity_building: {row['Activity_building']}, Activity_floor: {row['Activity_floor']}, Activity_room_num: {row['Activity_room_num']}"
+            )
+        return result
+    # finished
 
-            for tuple in result:
-                print(
-                    f"Activity_time: {tuple[0]}, Activity_type: {tuple[1]}, Require_chemical: {tuple[2]}, Activity_building: {tuple[3]}, Activity_floor: {tuple[4]}, Activity_room_num: {tuple[5]}")
-
-            return result
-
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
+    # 4. assign a manager to manage an activity
     def assign_manager_to_activity(self, manager_ssn, activity_time, activity_building, activity_floor,
                                    activity_room_num):
-        try:
-            ensure_not_empty(manager_ssn)
-            ensure_not_empty(activity_time)
-            ensure_not_empty(activity_building)
+        if Validators.validate_date(activity_time):
+            query = f"SELECT * FROM Mid_Level_Manage_Activity WHERE Manage_Activity_Building = {activity_building} AND Manage_Activity_Floor = {activity_floor} AND Manage_Activity_RoomNum = {activity_room_num} AND Manage_Activity_Time = {activity_time}"
+            result = self.execute_query(query)
+            if len(result) == 0:
+                query = f"INSERT INTO Mid_Level_Manage_Activity (Manager_Ssn, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time) VALUES ('{manager_ssn}', '{activity_building}', '{activity_floor}', '{activity_room_num}', '{activity_time}')"
+                return self.execute_update(query)
+        else:
+            print("Input date not validated!")
+    # finished
 
-            query = f"INSERT INTO Mid_Level_Manage_Activity (Manager_Ssn, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time) VALUES ('{manager_ssn}', '{activity_building}', '{activity_floor}', '{activity_room_num}', '{activity_time}')"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
+    # 5. assign a work to an employee
     def assign_employee_to_activity(self, working_time, working_building, working_floor, working_room_number,
                                     working_worker_ssn):
-        try:
-            ensure_not_empty(working_time)
-            ensure_not_empty(working_building)
-            ensure_not_empty(working_worker_ssn)
+        if Validators.validate_date(working_time):
+            query = f"SELECT * FROM Employee_Work_On WHERE Working_Building = {working_building} AND Working_Floor = {working_floor} AND Working_Room_number = {working_room_number} AND Working_Time = {working_time}"
+            result = self.execute_query(query)
+            if len(result) == 0:
+                query = f"INSERT INTO Employee_Work_On (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn) VALUES ('{working_time}', '{working_building}', '{working_floor}', '{working_room_number}', '{working_worker_ssn}')"
+                return self.execute_update(query)
+        else:
+            print("Input date not validated!")
+    # finished
 
-            query = f"INSERT INTO Employee_Work_On (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn) VALUES ('{working_time}', '{working_building}', '{working_floor}', '{working_room_number}', '{working_worker_ssn}')"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
+    # 6. assign a work to a temp-employee
     def assign_temp_employee_to_activity(self, temp_working_time, temp_working_building, temp_working_floor,
                                          temp_working_room_number, temp_working_worker_ssn):
-        try:
-            ensure_not_empty(temp_working_time)
-            ensure_not_empty(temp_working_building)
-            ensure_not_empty(temp_working_worker_ssn)
+        if Validators.validate_date(temp_working_time):
+            query = f"SELECT * FROM Temp_Employee_Work_On WHERE Temp_Working_Building = {temp_working_building} AND Temp_Working_Floor = {temp_working_floor} AND Temp_Working_Room_number = {temp_working_room_number} AND Temp_Working_Time = {temp_working_time} AND Temp_Working_Worker_Ssn = {temp_working_worker_ssn}"
+            result = self.execute_query(query)
+            if result == 0:
+                query = f"INSERT INTO Temp_Employee_Work_On (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn) VALUES ('{temp_working_time}', '{temp_working_building}', '{temp_working_floor}', '{temp_working_room_number}', '{temp_working_worker_ssn}')"
+                return self.execute_update(query)
+        else:
+            print("Input date not qualified!")
+    # finished
 
-            query = f"INSERT INTO Temp_Employee_Work_On (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn) VALUES ('{temp_working_time}', '{temp_working_building}', '{temp_working_floor}', '{temp_working_room_number}', '{temp_working_worker_ssn}')"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
-
+    # 7. apply an activity to a location
     def create_applied_to(self, applied_time, applied_building, applied_floor, applied_room_number, applied_reason):
-        try:
-            ensure_not_empty(applied_time)
-            ensure_not_empty(applied_building)
-            ensure_not_empty(applied_reason)
-
-            if not (Validators.validate_date(applied_time) and
-                    Validators.validate_building(applied_building) and
-                    Validators.validate_floor(applied_floor) and
-                    Validators.validate_room(applied_room_number) and
-                    Validators.validate_applied_reason(applied_reason)):
-                return {"success": False, "error": "Invalid input data"}
-
-            query = f"INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number, Applied_Reason) VALUES ('{applied_time}', '{applied_building}', '{applied_floor}', '{applied_room_number}', '{applied_reason}')"
+        query = f"INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number, Applied_Reason) VALUES ('{applied_time}', '{applied_building}', '{applied_floor}', '{applied_room_number}', '{applied_reason}')"
 
 
-            result = self.execute_update(query)
+        result = self.execute_update(query)
 
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        return result
 
     def remove_manager_from_activity(self, manager_ssn, activity_time, activity_building, activity_floor,
                                      activity_room_num):
         try:
-            ensure_not_empty(manager_ssn)
-            ensure_not_empty(activity_time)
-            ensure_not_empty(activity_building)
+
 
             query = f"DELETE FROM Mid_Level_Manage_Activity WHERE Manager_Ssn = '{manager_ssn}' AND Manage_Activity_Building = '{activity_building}' AND Manage_Activity_Floor = '{activity_floor}' AND Manage_Activity_RoomNum = '{activity_room_num}' AND Manage_Activity_Time = '{activity_time}'"
 
@@ -139,9 +115,7 @@ class QuickQueryDAO(BaseDAO):
     def remove_temp_employee_from_activity(self, temp_working_time, temp_working_building, temp_working_floor,
                                            temp_working_room_number, temp_working_worker_ssn):
         try:
-            ensure_not_empty(temp_working_time)
-            ensure_not_empty(temp_working_building)
-            ensure_not_empty(temp_working_worker_ssn)
+
 
             query = f"DELETE FROM Temp_Employee_Work_On WHERE Temp_Working_Time = '{temp_working_time}' AND Temp_Working_Building = '{temp_working_building}' AND Temp_Working_Floor = '{temp_working_floor}' AND Temp_Working_Room_number = '{temp_working_room_number}' AND Temp_Working_Worker_Ssn = '{temp_working_worker_ssn}'"
 
@@ -151,17 +125,14 @@ class QuickQueryDAO(BaseDAO):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-from .base_dao import BaseDAO
-from .validators import Validators
 
-
-class EmployeeDAO(BaseDAO):
 
     # get all current standard employees in the database
     def get_all_employees(self):
         result = self.execute_query("SELECT * FROM Employee")
         for row in result:
             print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
+        return result
 
     # get an employee's name by its ssn
     def get_employee_by_ssn(self, ssn):
@@ -494,15 +465,14 @@ class SupervisionDAO(BaseDAO):
 from wsgiref.validate import validator
 
 from .connection import DatabaseConnection
-from .validators import Validators, ensure_not_empty
+from .validators import Validators
 from .base_dao import BaseDAO
 
 
 class TempEmployeeDAO(BaseDAO):
 
     def create_temp_employee(self, temp_ssn, company_name):
-        ensure_not_empty(temp_ssn)
-        ensure_not_empty(company_name)
+
         result = self.execute_query(
             f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'",
         )
@@ -515,9 +485,7 @@ class TempEmployeeDAO(BaseDAO):
             return {"success": False, "error": "Temporary employee already exists"}
 
     def create_temp_employee_with_company(self, temp_ssn, company_name, contractor_company_name):
-        ensure_not_empty(temp_ssn)
-        ensure_not_empty(company_name)
-        ensure_not_empty(contractor_company_name)
+
 
         result = self.execute_query(
             f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'",
@@ -538,8 +506,7 @@ class TempEmployeeDAO(BaseDAO):
         return company_result
 
     def add_contractor_company_to_employee(self, temp_ssn, contractor_company_name):
-        ensure_not_empty(temp_ssn)
-        ensure_not_empty(contractor_company_name)
+
 
         employee_result = self.execute_query(
             f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
@@ -560,7 +527,7 @@ class TempEmployeeDAO(BaseDAO):
         return self.execute_update(query)
 
     def get_temp_employee_with_company(self, temp_ssn):
-        ensure_not_empty(temp_ssn)
+
 
         query = f"""
             SELECT te.TempSsn, te.Company_name, cc.name as Contractor_Company_Name
@@ -582,7 +549,7 @@ class TempEmployeeDAO(BaseDAO):
         return result
 
     def get_temp_employee_by_ssn(self, temp_ssn):
-        ensure_not_empty(temp_ssn)
+
         query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         result = self.execute_query(query)
         if len(result) != 0:
@@ -622,7 +589,6 @@ class TempEmployeeDAO(BaseDAO):
         return result
 
     def delete_temp_employee(self, temp_ssn):
-        ensure_not_empty(temp_ssn)
 
         check_query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         result = self.execute_query(check_query)
@@ -645,8 +611,7 @@ class TempEmployeeDAO(BaseDAO):
         return self.execute_update(delete_employee_query)
 
     def update_contractor_company(self, temp_employee_ssn, new_company_name):
-        ensure_not_empty(temp_employee_ssn)
-        ensure_not_empty(new_company_name)
+
 
         company_query = f"SELECT * FROM Contractor_Company WHERE Temp_Employee_Ssn = '{temp_employee_ssn}'"
         company_result = self.execute_query(company_query)

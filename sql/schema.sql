@@ -12,7 +12,7 @@ CREATE TABLE IF NOT EXISTS Temporary_Employee (
   Company_name VARCHAR(100) NOT NULL
 );
 
-CREATE TABLE IF NOT EXISTS  Location (
+CREATE TABLE IF NOT EXISTS Location (
   
   Building CHAR(20) NOT NULL,
   Floor INT NOT NULL,
@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS Office (
   Office_Floor INT NOT NULL,
   Office_RoomNum INT NOT NULL,
   
-  -- CONSTRAINT fk_office_owner FOREIGN KEY (OwnerSsn)
-  -- REFERENCES Employee(Ssn)
-  -- ON DELETE SET NULL
-  -- ON UPDATE CASCADE,
+  CONSTRAINT fk_office_owner FOREIGN KEY (OwnerSsn)
+  REFERENCES Employee(Ssn)
+  ON DELETE SET NULL
+  ON UPDATE CASCADE,
 
   CONSTRAINT fk_office_location FOREIGN KEY (Office_Building, Office_Floor, Office_RoomNum)
   REFERENCES Location(Building, Floor, Room_number)
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS Employee_Supervision (
   REFERENCES Employee(Ssn)
   ON UPDATE CASCADE,
 
-  PRIMARY KEY (Supervisor_Ssn, Supervisee_Ssn)
+  -- PRIMARY KEY (Supervisor_Ssn, Supervisee_Ssn)
   -- CONSTRAINT chk_no_self_supervision CHECK (Supervisor_Ssn != Supervisee_Ssn)
 );
 
@@ -111,9 +111,9 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   ON UPDATE CASCADE,
 
   -- CONSTRAINT chk_manager_level CHECK (
-  --  Manager_Ssn IN (SELECT Ssn
-  --                  FROM Employee
-  --                  WHERE Emp_Level = 'mid_level manager')
+  -- Manager_Ssn IN (SELECT Ssn
+  --                   FROM Employee
+  --                   WHERE Emp_Level = 'mid_level manager')
   -- ),
 
 
@@ -140,11 +140,11 @@ CREATE TABLE IF NOT EXISTS Employee_Work_On (
 
   
   Working_Worker_Ssn CHAR(20) NOT NULL,
-  -- CONSTRAINT working_worker_level CHECK (
-  --   Working_Worker_Ssn IN (SELECT Ssn
-  --                         FROM Employee
-  --                         WHERE Emp_Level = 'base_level worker')
-  -- ),
+  CONSTRAINT working_worker_level CHECK (
+    Working_Worker_Ssn IN (SELECT Ssn
+                          FROM Employee
+                          WHERE Emp_Level = 'base_level worker')
+  ),
 
   
   PRIMARY KEY (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn),
