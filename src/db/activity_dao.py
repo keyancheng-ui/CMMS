@@ -1,5 +1,4 @@
-from .connection import DatabaseConnection
-from .base_dao import BaseDAO
+from newVersion.src.db.base_dao import BaseDAO
 from .validators import Validators, ensure_not_empty
 
 class ActivityDAO(BaseDAO):

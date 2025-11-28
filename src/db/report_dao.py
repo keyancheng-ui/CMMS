@@ -1,4 +1,4 @@
-from .base_dao import BaseDAO
+from newVersion.src.db.base_dao import BaseDAO
 
 
 class ReportDAO(BaseDAO):

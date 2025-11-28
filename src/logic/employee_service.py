@@ -1,4 +1,4 @@
-from src.db.employee_dao import EmployeeDAO
+from newVersion.src.db.employee_dao import EmployeeDAO
 from src.db.location_dao import LocationDAO
 
 

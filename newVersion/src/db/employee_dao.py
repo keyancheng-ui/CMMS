@@ -1,5 +1,5 @@
-from .base_dao import BaseDAO
-from .validators import Validators
+from newVersion.src.db.base_dao import BaseDAO
+from src.db.validators import Validators
 
 
 class EmployeeDAO(BaseDAO):
