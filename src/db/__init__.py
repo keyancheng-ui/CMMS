@@ -3,7 +3,7 @@ from .connection import DatabaseConnection
 
 from .validators import *
 from .employee_dao import EmployeeDAO
-#from .contractor_dao import ContractorDAO
+from .contractor_dao import ContractorDAO
 from .location_dao import LocationDAO
 from .activity_dao import ActivityDAO
 from .report_dao import ReportDAO
@@ -62,7 +62,6 @@ def initialize_database(host='localhost', user='root', password='', database='ap
             print("test data successfully inserted")
 
         db.close()
-        print("database initialization finished")
 
     except Exception as e:
         print(f"database initialization failed: {e}")
