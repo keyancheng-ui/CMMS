@@ -2,7 +2,7 @@
 
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, scrolledtext
-
+from src.db.validators import *
 from src.db import QuickQueryDAO  # 假设你把这个类放在 db/service.py 并导出
 
 
@@ -39,9 +39,7 @@ class QuickQueryGUI:
         for item in tree.get_children():
             tree.delete(item)
 
-
-
-    # ---------- 员工管理 ----------
+    #员工管理有关：
     def create_employee_tab(self):
         frame = ttk.Frame(self.notebook)
         self.notebook.add(frame, text="员工管理")
@@ -61,6 +59,74 @@ class QuickQueryGUI:
         self.emp_tree.heading("Level", text="等级")
         self.emp_tree.pack(fill=tk.BOTH, expand=True, pady=5)
 
+    def add_employee_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("新增员工")
+        dialog.geometry("350x200")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)  # 设置为模态（依附于主窗口）
+        dialog.grab_set()  # 阻止操作主窗口，直到此窗口关闭
+        dialog.focus_set()  # 聚焦到此窗口
+
+        # SSN
+        ttk.Label(dialog, text="SSN:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_entry = ttk.Entry(dialog, textvariable=ssn_var, width=30)
+        ssn_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        # 姓名
+        ttk.Label(dialog, text="姓名:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        name_var = tk.StringVar()
+        name_entry = ttk.Entry(dialog, textvariable=name_var, width=30)
+        name_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 等级（下拉菜单）
+        ttk.Label(dialog, text="等级:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        level_var = tk.StringVar()
+        level_combo = ttk.Combobox(
+            dialog,
+            textvariable=level_var,
+            values=["executive officer", "mid_level manager", "base_level worker"],
+            state="readonly",  # 只允许选择，不允许手输
+            width=27
+        )
+        level_combo.grid(row=2, column=1, padx=10, pady=10)
+        level_combo.set("base_level worker")  # 默认值
+
+        # 按钮
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=3, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            name = name_var.get().strip()
+            level = level_var.get().strip()
+
+            if not ssn or not name or not level:
+                messagebox.showwarning("输入错误", "所有字段均为必填！", parent=dialog)
+                return
+
+            try:
+                self.service.add_employee(ssn, name, level)
+                messagebox.showinfo("成功", "员工已成功添加！", parent=dialog)
+                self.show_all_employees()
+                dialog.destroy()
+            except Exception as e:
+                messagebox.showerror("错误", str(e), parent=dialog)
+
+        def on_cancel():
+            dialog.destroy()
+
+        ttk.Button(button_frame, text="确定", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="取消", command=on_cancel).pack(side=tk.LEFT, padx=10)
+
+        # 初始聚焦到 SSN 输入框
+        ssn_entry.focus()
+
+
+    #已完成——————————————————
+
+
     def show_all_employees(self):
         try:
             self.clear_tree(self.emp_tree)
@@ -70,6 +136,18 @@ class QuickQueryGUI:
             self.update_status(f"加载 {len(emps)} 名员工")
         except Exception as e:
             messagebox.showerror("错误", str(e))
+
+    def add_employee_gui(self):
+        """触发自定义员工添加对话框"""
+        self.add_employee_dialog()
+
+
+
+
+
+
+
+
 
     def lookup_employee_by_ssn(self):
         ssn = simpledialog.askstring("查询员工", "输入 SSN:")
@@ -84,18 +162,14 @@ class QuickQueryGUI:
             except Exception as e:
                 messagebox.showerror("错误", str(e))
 
-    def add_employee_gui(self):
-        ssn = simpledialog.askstring("新增员工", "SSN:")
-        name = simpledialog.askstring("新增员工", "姓名:")
-        level_str = simpledialog.askstring("新增员工", "等级 (整数):")
-        if ssn and name and level_str:
-            try:
-                level = level_str
-                self.service.add_employee(ssn, name, level)
-                messagebox.showinfo("成功", "员工添加成功")
-                self.show_all_employees()
-            except Exception as e:
-                messagebox.showerror("错误", str(e))
+
+
+
+
+
+
+
+
 
     def update_employee_level_gui(self):
         ssn = simpledialog.askstring("更新等级", "员工 SSN:")

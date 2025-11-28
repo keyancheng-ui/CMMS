@@ -2,10 +2,7 @@ import tkinter as tk
 from db import initialize_database
 from ui.general_gui import QuickQueryGUI
 
-
 from logic.general_service import Service
-
-
 
 def main():
     print("start to initialize database...")
@@ -18,13 +15,11 @@ def main():
     print("the system is now ready for use")
 
     root = tk.Tk()
-    root.geometry("900x600")  # 初始窗口大小
+    root.geometry("900x900")  # 初始窗口大小
     app = QuickQueryGUI(root, password)
     root.protocol("WM_DELETE_WINDOW", app.on_closing)
     root.mainloop()
 
-    supervision_service = Service(password)
-    supervision_service.get_current_employee()
 
 if __name__ == "__main__":
     main()

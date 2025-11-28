@@ -109,8 +109,8 @@ class Service:
 
     #about report
 
-    def get_mid_level_managers_with_offices(self):
-        return self.quick_query.get_mid_level_managers_with_offices()
+    def get_mid_level_managers(self):
+        return self.quick_query.get_mid_level_managers()
 
     def get_activities_by_date_range(self, start_date, end_date):
         return self.quick_query.get_activities_by_date_range(start_date, end_date)

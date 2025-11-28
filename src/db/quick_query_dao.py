@@ -1,4 +1,5 @@
 from .base_dao import BaseDAO
+from .validators import Validators
 
 
 class QuickQueryDAO(BaseDAO):
@@ -78,52 +79,38 @@ class QuickQueryDAO(BaseDAO):
     # 7. apply an activity to a location
     def create_applied_to(self, applied_time, applied_building, applied_floor, applied_room_number, applied_reason):
         query = f"INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number, Applied_Reason) VALUES ('{applied_time}', '{applied_building}', '{applied_floor}', '{applied_room_number}', '{applied_reason}')"
-
-
-        result = self.execute_update(query)
-
-        return result
+        return self.execute_update(query)
+    # finished
 
     def remove_manager_from_activity(self, manager_ssn, activity_time, activity_building, activity_floor,
                                      activity_room_num):
-        try:
-
-
+        query = f"SELECT * FROM Mid_Level_Manage_Activity WHERE Manage_Activity_Building = {activity_building} AND Manage_Activity_Floor = {activity_floor} AND Manage_Activity_RoomNum = {activity_room_num} AND Manage_Activity_Time = {activity_time}"
+        result = self.execute_query(query)
+        if len(result) != 0:
             query = f"DELETE FROM Mid_Level_Manage_Activity WHERE Manager_Ssn = '{manager_ssn}' AND Manage_Activity_Building = '{activity_building}' AND Manage_Activity_Floor = '{activity_floor}' AND Manage_Activity_RoomNum = '{activity_room_num}' AND Manage_Activity_Time = '{activity_time}'"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+            return self.execute_update(query)
+        else:
+            print("Not exists!")
 
     def remove_employee_from_activity(self, working_time, working_building, working_floor, working_room_number,
                                       working_worker_ssn):
-        try:
-            ensure_not_empty(working_time)
-            ensure_not_empty(working_building)
-            ensure_not_empty(working_worker_ssn)
-
+        query = f"SELECT * FROM Employee_Work_On WHERE Working_Building = {working_building} AND Working_Floor = {working_floor} AND Working_Room_number = {working_room_number} AND Working_Time = {working_time}"
+        result = self.execute_query(query)
+        if len(result) != 0:
             query = f"DELETE FROM Employee_Work_On WHERE Working_Time = '{working_time}' AND Working_Building = '{working_building}' AND Working_Floor = '{working_floor}' AND Working_Room_number = '{working_room_number}' AND Working_Worker_Ssn = '{working_worker_ssn}'"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+            return self.execute_update(query)
+        else:
+            print("Not exists!")
 
     def remove_temp_employee_from_activity(self, temp_working_time, temp_working_building, temp_working_floor,
                                            temp_working_room_number, temp_working_worker_ssn):
-        try:
-
-
+        query = f"SELECT * FROM Temp_Employee_Work_On WHERE Temp_Working_Building = {temp_working_building} AND Temp_Working_Floor = {temp_working_floor} AND Temp_Working_Room_number = {temp_working_room_number} AND Temp_Working_Time = {temp_working_time} AND Temp_Working_Worker_Ssn = {temp_working_worker_ssn}"
+        result = self.execute_query(query)
+        if len(result) != 0:
             query = f"DELETE FROM Temp_Employee_Work_On WHERE Temp_Working_Time = '{temp_working_time}' AND Temp_Working_Building = '{temp_working_building}' AND Temp_Working_Floor = '{temp_working_floor}' AND Temp_Working_Room_number = '{temp_working_room_number}' AND Temp_Working_Worker_Ssn = '{temp_working_worker_ssn}'"
-
-            result = self.execute_update(query)
-
-            return result
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+            return self.execute_update(query)
+        else:
+            print("Not exists!")
 
 
 
@@ -141,6 +128,7 @@ class QuickQueryDAO(BaseDAO):
         )
         if len(result) > 0:
             print(result[0]['Name'])
+            return result[0]['Name']
         else:
             print(f"Employee {ssn} not exist. Insert first or check the input format.")
 
@@ -167,6 +155,7 @@ class QuickQueryDAO(BaseDAO):
             )
             for row in result:
                 print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
+            return result
         else:
             return
 
@@ -192,81 +181,57 @@ class QuickQueryDAO(BaseDAO):
             f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
         )
         if len(result) > 0:
-            result = self.execute_query(
-                f"SELECT * FROM Employee_Supervision WHERE Supervisor_Ssn = '{ssn}' OR Supervisee_Ssn = '{ssn}'"
-            )
-            query1 = f"DELETE FROM Employee WHERE Ssn = '{ssn}'"
-            if len(result) > 0:
-                query2 = f"DELETE FROM Employee_Supervision WHERE Supervisor_Ssn = '{ssn}' OR Supervisee_Ssn = '{ssn}'"
-                self.execute_update(query2)
-            return self.execute_update(query1)
+            query = f"DELETE FROM Employee WHERE Ssn = '{ssn}'"
+            return self.execute_update(query)
         else:
             print("Employee not exists. Insert first.")
 
-
-from .base_dao import BaseDAO
-from .validators import Validators
-
-
-class LocationDAO(BaseDAO):
-
     # insert a new campus location to the database
     def create_location(self, building, floor, room_number):
-        build_valid, build_msg = Validators.validate_building(building)
-        floor_valid, floor_msg = Validators.validate_floor(floor)
-        room_valid, room_msg = Validators.validate_room(room_number)
-        if build_valid and floor_valid and room_valid:
-            result = self.execute_query(
-                f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'",
-            )
-            if len(result) == 0:
-                return self.execute_update(
-                    f"INSERT INTO Location (Building, Floor, Room_number) VALUES ('{building}', '{floor}', '{room_number}')"
-                )
-            else:
-                print("This location already already exist!")
-
-
-
-        else:
-            print("insertion is invalid, f**k off.")
+       result = self.execute_query(
+            f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'",
+       )
+       if len(result) == 0:
+           return self.execute_update(
+               f"INSERT INTO Location (Building, Floor, Room_number) VALUES ('{building}', '{floor}', '{room_number}')"
+           )
+       else:
+           print("This location exists!")
 
     def check_location(self, building, floor, room_number):
-
-        build_valid, build_msg = Validators.validate_building(building)
         floor_valid, floor_msg = Validators.validate_floor(floor)
         room_valid, room_msg = Validators.validate_room(room_number)
-        if build_valid and floor_valid and room_valid:
+        if floor_valid and room_valid:
             result = self.execute_query(
-                f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'",
+                f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'"
             )
             if len(result) == 0:
-                print("Ain’t no such place")
-
+                attention = "It exists!"
+                print(attention)
+                return attention
             else:
-                print("You are right. It is on campus")
+                attention = "Not exists!"
+                print(attention)
+                return attention
 
 
 
-        else:
-            print("Not valid. Please have some common sense.")
+
 
     def get_all_locations(self):
 
         result = self.execute_query("SELECT * FROM Location")
         for row in result:
             print(f"Building: {row['Building']}, Floor: {row['Floor']}, Room_number: {row['Room_number']}")
+        return result
 
     def get_locations_by_building(self, building):
-        build_valid, build_msg = Validators.validate_building(building)
-        if build_valid:
-            result = self.execute_query(
-                f"SELECT * FROM Location WHERE Building = '{building}'",
-            )
-            for row in result:
-                print(f"Building: {row['Building']}, Floor: {row['Floor']}, Room_number: {row['Room_number']}")
-        else:
-            print("Not valid. Please have some common sense.")
+        result = self.execute_query(
+            f"SELECT * FROM Location WHERE Building = '{building}'",
+        )
+        for row in result:
+            print(f"Building: {row['Building']}, Floor: {row['Floor']}, Room_number: {row['Room_number']}")
+        return result
 
     def get_vacant_offices(self):
         result = self.execute_query(
@@ -274,49 +239,57 @@ class LocationDAO(BaseDAO):
         )
         for row in result:
             print(
-                f"Building: {row['Office_Building']}, Floor: {row['Office_Floor']}, Room_number: {row['Office_RoomNum']}")
+                f"Building: {row['Office_Building']}, Floor: {row['Office_Floor']}, Room_number: {row['Office_RoomNum']}"
+            )
+        return result
 
     def assign_office_to_employee(self, building, floor, room_number, owner_ssn):
-        build_valid, build_msg = Validators.validate_building(building)
+        result = self.execute_query(
+            f"SELECT * FROM Office WHERE OwnerSsn = '{owner_ssn}"
+        )
         floor_valid, floor_msg = Validators.validate_floor(floor)
         room_valid, room_msg = Validators.validate_room(room_number)
-        if build_valid and floor_valid and room_valid:
-            self.execute_query(
-                f"UPDATE Office SET OwnerSsn = '{owner_ssn}' WHERE Office_Building = '{building}' AND Office_Floor = '{floor}' AND Office_RoomNum = '{room_number}'"
-            )
+        if floor_valid and room_valid:
+            if len(result) == 0:
+                self.execute_query(
+                    f"UPDATE Office SET OwnerSsn = '{owner_ssn}' WHERE Office_Building = '{building}' AND Office_Floor = '{floor}' AND Office_RoomNum = '{room_number}'"
+                )
+            else:
+                message = "The employee has an office."
+                print(message)
+                return message
         else:
-            print("Not valid. This place doesn't exist. What are you f**king thinkin of?")
+            print("Not valid!")
+            return "Not valid!"
 
     def vacate_office(self, building, floor, room_number):
-        build_valid, build_msg = Validators.validate_building(building)
+
         floor_valid, floor_msg = Validators.validate_floor(floor)
         room_valid, room_msg = Validators.validate_room(room_number)
-        if build_valid and floor_valid and room_valid:
+        if floor_valid and room_valid:
             self.execute_query(
                 f"UPDATE Office SET OwnerSsn = NULL WHERE Office_Building = '{building}' AND Office_Floor = '{floor}' AND Office_RoomNum = '{room_number}'"
             )
 
         else:
-            print("Not valid. This place doesn't exist. What are you f**king thinkin of?")
+            print("Not valid.")
+            return "Not valid."
 
-from .base_dao import BaseDAO
-
-
-class ReportDAO(BaseDAO):
-
-    def get_mid_level_managers_with_offices(self):
+    def get_mid_level_managers(self):
         result = self.execute_query(
             f"SELECT Name FROM Employee WHERE Emp_Level = mid_level manager",
         )
         for row in result:
             print(f"Mid_level manager Mr./Ms. {row['Name']}")
+        return result
 
     def get_activities_by_date_range(self, start_date, end_date):
         result = self.execute_query(
             f"SELECT * FROM Activity WHERE Activity_Time BETWEEN '{start_date}' AND '{end_date}'",
         )
         for row in result:
-            print(f"Activity_Time: {row['Activity_Time']}, Activity_Type: {row['Activity_Type']}, Require_Chemical: {row['Require_Chemical']},Activity_Type: {row['Activity_Type']}, Require_Chemical: {row['Require_Chemical']}"),
+            print(f"Activity_Time: {row['Activity_Time']}, Activity_Type: {row['Activity_Type']}, Require_Chemical: {row['Require_Chemical']},Activity_Type: {row['Activity_Type']}, Require_Chemical: {row['Require_Chemical']}")
+        return result
 
     def get_manager_activity_counts(self,manager_ssn):
         result = self.execute_query(
@@ -324,6 +297,7 @@ class ReportDAO(BaseDAO):
         )
         count = len(result)
         print(f"The number of activities managed by manager {manager_ssn} is {count}.")
+        return count
 
     def get_employees_in_certain_building(self, activity_date, building):
         result = self.execute_query(
@@ -332,6 +306,7 @@ class ReportDAO(BaseDAO):
         print("the workers' Ssns are:")
         for row in result:
             print(f"{row['Working_Worker_Ssn']}")
+        return result
 
 
 
@@ -339,19 +314,13 @@ class ReportDAO(BaseDAO):
         result = self.execute_query(
             f"SELECT * FROM Temporary_Employee",
         )
-        print("the contract worker count is")
-        i = 0
-        for row in result:
-            i += 1
-        print(i)
+        i = len(result)
+        print(f"the contract worker count is: {i}")
+        return i
 
 
 
-from .base_dao import BaseDAO
-from .validators import Validators
 
-
-class SupervisionDAO(BaseDAO):
 
     # create new supervision if not exists
     def set_supervision(self, employee_ssn, supervisor_ssn):
@@ -462,27 +431,12 @@ class SupervisionDAO(BaseDAO):
         else:
             print("Supervision not exists!")
 
-from wsgiref.validate import validator
-
-from .connection import DatabaseConnection
-from .validators import Validators
-from .base_dao import BaseDAO
 
 
-class TempEmployeeDAO(BaseDAO):
 
-    def create_temp_employee(self, temp_ssn, company_name):
 
-        result = self.execute_query(
-            f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'",
-        )
-        if len(result) == 0:
-            query = f"INSERT INTO Temporary_Employee (TempSsn, Company_name) VALUES ('{temp_ssn}', '{company_name}')"
-            print("Add new temporay employee: (ssn)", temp_ssn)
-            return self.execute_update(query)
-        else:
-            print(f"Temporary employee {temp_ssn} exist.")
-            return {"success": False, "error": "Temporary employee already exists"}
+
+
 
     def create_temp_employee_with_company(self, temp_ssn, company_name, contractor_company_name):
 
@@ -493,38 +447,16 @@ class TempEmployeeDAO(BaseDAO):
 
         if len(result) > 0:
             print(f"Temporary employee {temp_ssn} already exists.")
-            return {"success": False, "error": "Temporary employee already exists"}
+            return "Already exists!"
 
         query = f"INSERT INTO Temporary_Employee (TempSsn, Company_name) VALUES ('{temp_ssn}', '{company_name}')"
-        employee_result = self.execute_update(query)
-        print("Add new temporary employee: (ssn)", temp_ssn)
-
         contractor_query = f"INSERT INTO Contractor_Company (name, Temp_Employee_Ssn) VALUES ('{contractor_company_name}', '{temp_ssn}')"
-        company_result = self.execute_update(contractor_query)
+
+        print("Add new temporary employee: (ssn)", temp_ssn)
         print(f"Add contractor company: {contractor_company_name} for employee {temp_ssn}")
-
-        return company_result
-
-    def add_contractor_company_to_employee(self, temp_ssn, contractor_company_name):
+        return self.execute_update(query) and self.execute_update(contractor_query)
 
 
-        employee_result = self.execute_query(
-            f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
-        )
-
-        if len(employee_result) == 0:
-            return {"success": False, "error": "Temporary employee does not exist"}
-
-        company_result = self.execute_query(
-            f"SELECT * FROM Contractor_Company WHERE Temp_Employee_Ssn = '{temp_ssn}'"
-        )
-
-        if len(company_result) > 0:
-            return {"success": False, "error": "Contractor company already exists for this employee"}
-
-        query = f"INSERT INTO Contractor_Company (name, Temp_Employee_Ssn) VALUES ('{contractor_company_name}', '{temp_ssn}')"
-        print(f"Added contractor company: {contractor_company_name} for employee {temp_ssn}")
-        return self.execute_update(query)
 
     def get_temp_employee_with_company(self, temp_ssn):
 
@@ -540,7 +472,7 @@ class TempEmployeeDAO(BaseDAO):
 
         if len(result) == 0:
             print(f"Temporary employee {temp_ssn} does not exist.")
-            return result
+            return "not exist"
 
         print(f"Get employee: {result[0]['TempSsn']}, company: {result[0]['Company_name']}")
         if result[0]['Contractor_Company_Name']:
@@ -590,6 +522,7 @@ class TempEmployeeDAO(BaseDAO):
 
     def delete_temp_employee(self, temp_ssn):
 
+
         check_query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         result = self.execute_query(check_query)
 
@@ -597,14 +530,7 @@ class TempEmployeeDAO(BaseDAO):
             print(f"Temporary employee {temp_ssn} does not exist.")
             return {"success": False, "error": "Temporary employee not found"}
 
-        delete_temp_supervise_query = f"DELETE FROM TempSupervise WHERE Supervisee_Ssn_temp_employee = '{temp_ssn}'"
-        self.execute_update(delete_temp_supervise_query)
 
-        delete_contractor_query = f"DELETE FROM Contractor_Company WHERE Temp_Employee_Ssn = '{temp_ssn}'"
-        self.execute_update(delete_contractor_query)
-
-        delete_assignments_query = f"DELETE FROM Temp_Employee_Work_On WHERE Temp_Working_Worker_Ssn = '{temp_ssn}'"
-        self.execute_update(delete_assignments_query)
 
         delete_employee_query = f"DELETE FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
         print(f"Deleted temporary employee: (ssn) {temp_ssn}")
