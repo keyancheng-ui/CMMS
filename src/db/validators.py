@@ -1,4 +1,4 @@
-import re
+
 from datetime import datetime, date
 from typing import Tuple
 
@@ -27,6 +27,49 @@ class Validators:
             return True
 
     @staticmethod
+    #手工自制楼名检查函数
+    def validate_building(building) -> Tuple[bool, str]:
+        if not building or len(building.strip()) == 0:
+            return False, "Building cannot be empty"
+        if len(building) > 20:
+            return False, "Building name must not exceed 20 characters"
+        return True, "Building Insertion Succeeded"
+
+    @staticmethod
+    # 手工自制层数检查函数（只能为非负整数）
+    def validate_floor(floor) -> Tuple[bool, str]:
+        if floor < 0:
+            return False,
+        if not isinstance(floor, int):
+            return False, "Floor must be an integer"
+        return True, "Floor Insertion Succeeded"
+
+    @staticmethod
+    # 手工自制房号检查函数
+    def validate_room(room) -> Tuple[bool, str]:
+        if room <= 0:
+            return False, "Room number must be positive"
+        if room <= 100:
+            return False, "Room number must be greater than 100"
+        if not isinstance(room, int):
+            return False, "Floor must be an integer"
+        return True, "Valid room number"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    @staticmethod
     def validate_activity_type(activity_type: str) -> Tuple[bool, str]:
         valid_types = ['daily campus cleaning', 'campus ageing', 'weather-related issues']
         if activity_type not in valid_types:
@@ -41,25 +84,7 @@ class Validators:
         except ValueError:
             return False, "Invalid date format. Use YYYY-MM-DD"
 
-    @staticmethod
-    def validate_building(building: str) -> Tuple[bool, str]:
-        if not building or len(building.strip()) == 0:
-            return False, "Building cannot be empty"
-        if len(building) > 20:
-            return False, "Building name must not exceed 20 characters"
-        return True, "Valid building"
 
-    @staticmethod
-    def validate_floor(floor: int) -> Tuple[bool, str]:
-        if floor < 0:
-            return False, "Floor cannot be negative"
-        return True, "Valid floor"
-
-    @staticmethod
-    def validate_room(room: int) -> Tuple[bool, str]:
-        if room <= 0:
-            return False, "Room number must be positive"
-        return True, "Valid room number"
 
     @staticmethod
     def validate_applied_reason(reason: str) -> Tuple[bool, str]:
