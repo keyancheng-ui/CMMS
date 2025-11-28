@@ -2,8 +2,6 @@ from newVersion.src.db.base_dao import BaseDAO
 
 
 class ReportDAO(BaseDAO):
-    def __init__(self, db_connection=None, password=None):
-        super().__init__(db_connection=db_connection, password=password)
 
     def get_mid_level_managers_with_offices(self):
         result = self.execute_query(
@@ -23,10 +21,8 @@ class ReportDAO(BaseDAO):
         result = self.execute_query(
             f"SELECT * FROM Mid_Level_Manage_Activity  WHERE Manager_Ssn = '{manager_ssn}'",
         )
-        count = 0
-        for row in result:
-            count += 1
-            print("the activity number is,",count)
+        count = len(result)
+        print(f"The number of activities managed by manager {manager_ssn} is {count}.")
 
     def get_employees_in_certain_building(self, activity_date, building):
         result = self.execute_query(
