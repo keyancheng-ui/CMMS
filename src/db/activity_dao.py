@@ -110,3 +110,48 @@ class ActivityDAO(BaseDAO):
             return result
         except Exception as e:
             return {"success": False, "error": str(e)}
+
+    def remove_manager_from_activity(self, manager_ssn, activity_time, activity_building, activity_floor,
+                                     activity_room_num):
+        try:
+            ensure_not_empty(manager_ssn)
+            ensure_not_empty(activity_time)
+            ensure_not_empty(activity_building)
+
+            query = f"DELETE FROM Mid_Level_Manage_Activity WHERE Manager_Ssn = '{manager_ssn}' AND Manage_Activity_Building = '{activity_building}' AND Manage_Activity_Floor = '{activity_floor}' AND Manage_Activity_RoomNum = '{activity_room_num}' AND Manage_Activity_Time = '{activity_time}'"
+
+            result = self.execute_update(query)
+
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def remove_employee_from_activity(self, working_time, working_building, working_floor, working_room_number,
+                                      working_worker_ssn):
+        try:
+            ensure_not_empty(working_time)
+            ensure_not_empty(working_building)
+            ensure_not_empty(working_worker_ssn)
+
+            query = f"DELETE FROM Employee_Work_On WHERE Working_Time = '{working_time}' AND Working_Building = '{working_building}' AND Working_Floor = '{working_floor}' AND Working_Room_number = '{working_room_number}' AND Working_Worker_Ssn = '{working_worker_ssn}'"
+
+            result = self.execute_update(query)
+
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
+    def remove_temp_employee_from_activity(self, temp_working_time, temp_working_building, temp_working_floor,
+                                           temp_working_room_number, temp_working_worker_ssn):
+        try:
+            ensure_not_empty(temp_working_time)
+            ensure_not_empty(temp_working_building)
+            ensure_not_empty(temp_working_worker_ssn)
+
+            query = f"DELETE FROM Temp_Employee_Work_On WHERE Temp_Working_Time = '{temp_working_time}' AND Temp_Working_Building = '{temp_working_building}' AND Temp_Working_Floor = '{temp_working_floor}' AND Temp_Working_Room_number = '{temp_working_room_number}' AND Temp_Working_Worker_Ssn = '{temp_working_worker_ssn}'"
+
+            result = self.execute_update(query)
+
+            return result
+        except Exception as e:
+            return {"success": False, "error": str(e)}
