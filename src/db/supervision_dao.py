@@ -1,61 +1,95 @@
-from .validators import ensure_distinct
+from .base_dao import BaseDAO
+from .validators import Validators
 
-class SupervisionDAO:
-    def __init__(self, conn):
-        self.conn = conn
 
+class SupervisionDAO(BaseDAO):
+
+    # create new supervision if not exists
     def set_supervision(self, employee_ssn, supervisor_ssn):
-        ensure_distinct(employee_ssn, supervisor_ssn)
-        cur = self.conn.cursor()
-        cur.execute("UPDATE employees SET supervisor_ssn=%s WHERE ssn=%s", (supervisor_ssn, employee_ssn))
-        self.conn.commit()
-        cur.close()
+        result1 = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{employee_ssn}'"
+        )
+        result2 = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{supervisor_ssn}'"
+        )
+        result3 = self.execute_query(
+            f"SELECT * FROM Employee_Supervision WHERE Supervisor_Ssn = '{supervisor_ssn}' AND Supervisee_Ssn = '{employee_ssn}'"
+        )
 
-    def list_subordinates(self, supervisor_ssn):
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute("SELECT ssn AS employee_ssn FROM employees WHERE supervisor_ssn=%s", (supervisor_ssn,))
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+        if len(result1) != 0 and len(result2) != 0:
+            if Validators.ensure_distinct(employee_ssn, supervisor_ssn):
+                if len(result3) == 0:
+                    level1 = result1[0]['Emp_Level']
+                    level2 = result2[0]['Emp_Level']
+                    if (level1 == 'base_level worker' and level2 == 'mid_level manager') or (level1 == 'base_level worker' and level2 == 'executive officer') or (level1 == 'mid_level manager' and level2 == 'executive officer'):
+                        query = f"INSERT INTO Employee_Supervision (Supervisor_Ssn, Supervisee_Ssn) VALUES ('{supervisor_ssn}', '{employee_ssn}')"
+                        return self.execute_update(query)
+                    else:
+                        print("Supervision is not qualified!")
+                else:
+                    print("Supervision already exists!")
+            else:
+                print("An employee cannot supervise itself!")
+        else:
+            print("Employee may not exist!")
 
+    # list all supervision for an employee
+    def list_supervision(self, ssn):
+        result1 = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{ssn}'"
+        )
+        result2 = self.execute_query(
+            f"SELECT * FROM Employee_Supervision WHERE Supervisor_Ssn = '{ssn}' OR Supervisee_Ssn = '{ssn}'"
+        )
+        if len(result1) != 0:
+            if len(result2) != 0:
+                for row in result2:
+                    print(f"{row['Supervisor_Ssn']} supervises {row['Supervisee_Ssn']}")
+            else:
+                print("Supervision not exists! Set first!")
+        else:
+            print("Employee not exists!")
+
+    # set a temp supervision
     def set_temp_supervision(self, temp_employee_ssn, supervisor_ssn):
-        ensure_distinct(temp_employee_ssn, supervisor_ssn)
-        cur = self.conn.cursor()
-        cur.execute("DELETE FROM supervise_temp_employees WHERE temp_employee_ssn=%s", (temp_employee_ssn,))
-        cur.execute(
-            "INSERT INTO supervise_temp_employees(temp_employee_ssn, supervisor_ssn) VALUES(%s, %s)",
-            (temp_employee_ssn, supervisor_ssn)
+        result1 = self.execute_query(
+            f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_employee_ssn}'"
         )
-        self.conn.commit()
-        cur.close()
+        result2 = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{supervisor_ssn}'"
+        )
+        result3 = self.execute_query(
+            f"SELECT * FROM TempSupervise WHERE Supervisor_Ssn_midlevel_manager = '{supervisor_ssn}' AND Supervisee_Ssn_temp_employee = '{temp_employee_ssn}'"
+        )
 
-    def list_temp_subordinates(self, supervisor_ssn):
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute(
-            "SELECT temp_employee_ssn FROM supervise_temp_employees WHERE supervisor_ssn=%s",
-            (supervisor_ssn,)
-        )
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+        if len(result1) != 0 and len(result2) != 0:
 
-    def set_contractor_company_supervision(self, company_name, supervisor_ssn):
-        ensure_distinct(company_name, supervisor_ssn)
-        cur = self.conn.cursor()
-        cur.execute("DELETE FROM supervise_contractor_companies WHERE company_name=%s", (company_name,))
-        cur.execute(
-            "INSERT INTO supervise_contractor_companies(company_name, supervisor_ssn) VALUES(%s, %s)",
-            (company_name, supervisor_ssn)
-        )
-        self.conn.commit()
-        cur.close()
+            if len(result3) == 0:
+                level2 = result2[0]['Emp_Level']
+                if level2 == 'mid_level manager':
+                    query = f"INSERT INTO TempSupervise (Supervisor_Ssn_midlevel_manager, Supervisee_Ssn_temp_employee) VALUES ('{supervisor_ssn}', '{temp_employee_ssn}')"
+                    return self.execute_update(query)
+                else:
+                    print("Only middle level manager is qualified to supervise temp-workers!")
+            else:
+                print("Supervision already exists!")
+        else:
+            print("Employee may not exist!")
 
-    def list_contractor_company_subordinates(self, supervisor_ssn):
-        cur = self.conn.cursor(dictionary=True)
-        cur.execute(
-            "SELECT company_name FROM supervise_contractor_companies WHERE supervisor_ssn=%s",
-            (supervisor_ssn,)
+    # list the supervision of a temp-employee
+    def list_temp_supervision(self, supervisee_ssn):
+        result1 = self.execute_query(
+            f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{supervisee_ssn}'"
         )
-        rows = cur.fetchall()
-        cur.close()
-        return rows
+        result2 = self.execute_query(
+            f"SELECT * FROM TempSupervise WHERE Supervisee_Ssn_temp_employee = '{supervisee_ssn}'"
+        )
+        if len(result1) != 0:
+            if len(result2) != 0:
+                for row in result2:
+                    print(f"{row['Supervisor_Ssn_midlevel_manager']} supervises {row['Supervisee_Ssn_temp_employee']}")
+            else:
+                print("Supervision not exists! Set first!")
+        else:
+            print("Temp-employee not exists!")
+
