@@ -1,5 +1,3 @@
-from db.quick_query_dao import QuickQueryDao
-
 #about activity
 
 
