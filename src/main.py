@@ -12,9 +12,8 @@ def main():
 
     employee_service = EmployeeService()
     employee_service.get_current_employee()
-    employee_service.register_employee(1000000012, 'Jen', 'base_level worker')
-    employee_service.register_employee(1000000013, 'Jen', 'big_level worker')
-    employee_service.register_employee(1000000013, 'Jen', 'base_level worker')
+    employee_service.employee_fire(1000000013)
+    employee_service.employee_fire(1000000012)
     employee_service.get_current_employee()
     employee_service.close()
 

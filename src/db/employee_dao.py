@@ -61,3 +61,14 @@ class EmployeeDAO(BaseDAO):
                 self.add_employee(ssn, name, new_level)
         else:
             return
+
+    # delete an employee
+    def delete_employee(self, ssn):
+        result = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
+        )
+        if len(result) > 0:
+            query = f"DELETE FROM Employee WHERE Ssn = '{ssn}'"
+            return self.execute_update(query)
+        else:
+            print("Employee not exists. Insert first.")

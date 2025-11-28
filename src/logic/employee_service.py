@@ -28,6 +28,10 @@ class EmployeeService:
     def employee_promotion(self, ssn, level):
         self.employee_dao.update_employee(ssn, level)
 
+    # delete an employee
+    def employee_fire(self, ssn):
+        self.employee_dao.delete_employee(ssn)
+
 
 
 
