@@ -82,7 +82,7 @@ CREATE TABLE IF NOT EXISTS Contractor_Company (
   REFERENCES Temporary_Employee(TempSsn)
   ON UPDATE CASCADE,
   
-  Company_name VARCHAR(100)
+  name VARCHAR(100)
 );
 
 CREATE TABLE IF NOT EXISTS Activity (
