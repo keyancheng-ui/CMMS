@@ -3,6 +3,10 @@ from .validators import Validators
 
 
 class SupervisionDAO(BaseDAO):
+    def __init__(self, db_connection=None, password=None):
+        super().__init__(db_connection=db_connection, password=password)
+
+
 
     # create new supervision if not exists
     def set_supervision(self, employee_ssn, supervisor_ssn):

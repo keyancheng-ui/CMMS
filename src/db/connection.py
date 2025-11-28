@@ -9,13 +9,7 @@ class DatabaseConnection:
             password=password,
             database=database
         )
-        self.cursor = self.connection.cursor()
 
-    def close(self):
-        if self.cursor:
-            self.cursor.close()
-        if self.conn:
-            self.conn.close()
 
     # general sql execution (CREATE)
     def execute_script(self, sql_script):

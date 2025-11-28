@@ -2,6 +2,8 @@ from .base_dao import BaseDAO
 from .validators import Validators
 
 class LocationDAO(BaseDAO):
+    def __init__(self, db_connection=None, password=None):
+        super().__init__(db_connection=db_connection, password=password)
 
     # insert a new campus location to the database
     def create_location(self, building, floor, room_number):

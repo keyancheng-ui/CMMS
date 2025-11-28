@@ -2,6 +2,8 @@ from .base_dao import BaseDAO
 
 
 class ReportDAO(BaseDAO):
+    def __init__(self, db_connection=None, password=None):
+        super().__init__(db_connection=db_connection, password=password)
 
     def get_mid_level_managers_with_offices(self):
         result = self.execute_query(
