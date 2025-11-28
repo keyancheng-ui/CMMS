@@ -1,72 +1,64 @@
+from wsgiref.validate import validator
+
 from .connection import DatabaseConnection
 from .validators import Validators, ensure_not_empty
+from .base_dao import BaseDAO
 
-class TempEmployeeDAO:
-    def __init__(self):
-        pass
+class TempEmployeeDAO(BaseDAO):
 
     def create_temp_employee(self, temp_ssn, company_name):
-        try:
-            ensure_not_empty(temp_ssn)
-            ensure_not_empty(company_name)
-            
-            valid, msg = Validators.validate_ssn(temp_ssn)
-            if not valid:
-                return {"success": False, "error": msg}
-                
-            valid, msg = Validators.validate_company_name(company_name)
-            if not valid:
-                return {"success": False, "error": msg}
-
-            db = DatabaseConnection()
-            query = "INSERT INTO Temporary_Employee (TempSsn, Company_name) VALUES (%s, %s)"
-            
-            cursor = db.connection.cursor()
-            cursor.execute(query, (temp_ssn, company_name))
-            db.connection.commit()
-            cursor.close()
-            db.close()
-            
-            return {"success": True, "data": {"TempSsn": temp_ssn, "Company_name": company_name}}
-            
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        ensure_not_empty(temp_ssn)
+        ensure_not_empty(company_name)
+        result = self.execute_query(
+            f"SELECT * FROM Temporary_Employee WHERE Ssn = '{temp_ssn}'",
+        )
+        if(result.len==0):
+            query = f"INSERT INTO Temporary_Employee (TempSsn, Company_name) VALUES ('{temp_ssn}', '{company_name}')"
+            self.execute_update(query)
+            print("Add new temporay employee: (ssn)",temp_ssn)
+        else:
+            print(f"Temporary employee {temp_ssn} exist.")
 
     def get_temp_employee_by_ssn(self, temp_ssn):
-        try:
-            ensure_not_empty(temp_ssn)
-            
-            db = DatabaseConnection()
-            query = "SELECT * FROM Temporary_Employee WHERE TempSsn = %s"
-            
-            cursor = db.connection.cursor(dictionary=True)
-            cursor.execute(query, (temp_ssn,))
-            result = cursor.fetchone()
-            cursor.close()
-            db.close()
-            
-            if result:
-                return {"success": True, "data": result}
-            else:
-                return {"success": False, "error": "Temp employee not found"}
-                
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        ensure_not_empty(temp_ssn)
+        query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
+        result = self.execute_query(query)
+        if result.len != 0:
+            print("Get ",result[0]['TempSsn']," ",result[0]['Company_name'])
+            return result
+        else:
+            print("There is not such temporary employee exist")
+            return None
+
 
     def get_all_temp_employees(self):
-        try:
-            db = DatabaseConnection()
-            query = "SELECT * FROM Temporary_Employee ORDER BY Company_name, TempSsn"
-            
-            cursor = db.connection.cursor(dictionary=True)
-            cursor.execute(query)
-            results = cursor.fetchall()
-            cursor.close()
-            db.close()
-            
-            return {"success": True, "data": results}
-            
-        except Exception as e:
-            return {"success": False, "error": str(e)}
+        query = "SELECT * FROM Temporary_Employee ORDER BY Company_name, TempSsn"
+        result = self.execute_query(query)
+        if result.len != 0:
+            for row in result:
+                print(f"TempSsn: {row['TempSsn']}, Company_name: {row['Company_name']}")
+            return result
+        else:
+            print("There is not temporary employee now")
+            return None
+
+    def delete_temp_employee(self, temp_ssn):
+        ensure_not_empty(temp_ssn)
+        
+        check_query = f"SELECT * FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
+        result = self.execute_query(check_query)
+
+        if len(result) == 0:
+            print(f"Temporary employee {temp_ssn} does not exist.")
+            return None
+
+        delete_assignments_query = f"DELETE FROM Temp_Employee_Work_On WHERE Temp_Working_Worker_Ssn = '{temp_ssn}'"
+        assignment_result = self.execute_update(delete_assignments_query)
+
+        delete_employee_query = f"DELETE FROM Temporary_Employee WHERE TempSsn = '{temp_ssn}'"
+        delete_result = self.execute_update(delete_employee_query)
+
+        print(f"Deleted temporary employee: (ssn) {temp_ssn}")
+        return delete_result
 
 
