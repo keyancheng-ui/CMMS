@@ -157,19 +157,18 @@ class ActivityDAO(BaseDAO):
         except Exception as e:
             return {"success": False, "error": str(e)}
 
-from .base_dao import BaseDAO
-from .validators import Validators
-
 
 class EmployeeDAO(BaseDAO):
 
-    # get all current standard employees in the database
+    # Query regarding employees:
+
+    # 1.get all current standard employees in the database
     def get_all_employees(self):
         result = self.execute_query("SELECT * FROM Employee")
         for row in result:
             print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
 
-    # get an employee's name by its ssn
+    # 2.get an employee's name by its ssn
     def get_employee_by_ssn(self, ssn):
         result = self.execute_query(
             f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
@@ -179,7 +178,7 @@ class EmployeeDAO(BaseDAO):
         else:
             print(f"Employee {ssn} not exist. Insert first or check the input format.")
 
-    # add new employees
+    # 3.add new employees
     def add_employee(self, ssn, name, emp_level):
         if Validators.validate_employee_level(emp_level):
             result = self.execute_query(
