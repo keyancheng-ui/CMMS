@@ -29,7 +29,7 @@ class SupervisionDAO(BaseDAO):
                 else:
                     print("Supervision already exists!")
             else:
-                print("An employee cannot supervise itself!")
+                return
         else:
             print("Employee may not exist!")
 
@@ -49,6 +49,16 @@ class SupervisionDAO(BaseDAO):
                 print("Supervision not exists! Set first!")
         else:
             print("Employee not exists!")
+
+    def delete_supervision(self, supervisor_ssn, supervisee_ssn):
+        result = self.execute_query(
+            f"SELECT * FROM Employee_Supervision WHERE Supervisor_Ssn = '{supervisor_ssn}' AND Supervisee_Ssn = '{supervisee_ssn}'"
+        )
+        if len(result) > 0:
+            query = f"DELETE FROM Employee_Supervision WHERE Supervisor_Ssn = '{supervisor_ssn}' AND Supervisee_Ssn = '{supervisee_ssn}'"
+            self.execute_update(query)
+        else:
+            print("Supervision not exists!")
 
     # set a temp supervision
     def set_temp_supervision(self, temp_employee_ssn, supervisor_ssn):
@@ -92,4 +102,14 @@ class SupervisionDAO(BaseDAO):
                 print("Supervision not exists! Set first!")
         else:
             print("Temp-employee not exists!")
+
+    def delete_temp_supervision(self, temp_supervisee_ssn):
+        result = self.execute_query(
+            f"SELECT * FROM TempSupervise WHERE Supervisee_Ssn_temp_employee = '{temp_supervisee_ssn}'"
+        )
+        if len(result) > 0:
+            query = f"DELETE FROM TempSupervise WHERE Supervisee_Ssn_temp_employee = '{temp_supervisee_ssn}'"
+            self.execute_update(query)
+        else:
+            print("Supervision not exists!")
 
