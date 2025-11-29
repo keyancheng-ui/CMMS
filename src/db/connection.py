@@ -10,6 +10,7 @@ class DatabaseConnection:
             database=database
         )
 
+
     # general sql execution (CREATE)
     def execute_script(self, sql_script):
         cursor = self.connection.cursor()

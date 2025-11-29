@@ -28,10 +28,10 @@ CREATE TABLE IF NOT EXISTS Office (
   Office_Floor INT NOT NULL,
   Office_RoomNum INT NOT NULL,
   
-  CONSTRAINT fk_office_owner FOREIGN KEY (OwnerSsn)
-  REFERENCES Employee(Ssn)
-  ON DELETE SET NULL
-  ON UPDATE CASCADE,
+  -- CONSTRAINT fk_office_owner FOREIGN KEY (OwnerSsn)
+  -- REFERENCES Employee(Ssn)
+  -- ON DELETE SET NULL
+  -- ON UPDATE CASCADE,
 
   CONSTRAINT fk_office_location FOREIGN KEY (Office_Building, Office_Floor, Office_RoomNum)
   REFERENCES Location(Building, Floor, Room_number)
