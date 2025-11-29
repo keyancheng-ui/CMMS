@@ -2,9 +2,8 @@ from .connection import DatabaseConnection
 from .base_dao import BaseDAO
 from .validators import Validators, ensure_not_empty
 
+
 class ActivityDAO(BaseDAO):
-    def __init__(self, db_connection=None, password=None):
-        super().__init__(db_connection=db_connection, password=password)
 
     def get_activity(self, activity_time, activity_building, activity_floor, activity_room_num):
         try:

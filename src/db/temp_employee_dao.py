@@ -6,8 +6,6 @@ from .base_dao import BaseDAO
 
 
 class TempEmployeeDAO(BaseDAO):
-    def __init__(self, db_connection=None, password=None):
-        super().__init__(db_connection=db_connection, password=password)
 
     def create_temp_employee(self, temp_ssn, company_name):
         ensure_not_empty(temp_ssn)

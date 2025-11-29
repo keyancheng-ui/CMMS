@@ -17,6 +17,5 @@ def main():
     supervision_service = EmployeeService(password)
     supervision_service.get_current_employee()
 
-
 if __name__ == "__main__":
     main()
