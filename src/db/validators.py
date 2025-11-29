@@ -13,6 +13,14 @@ class Validators:
             print(f"Employee level must be in [{valid_levels[0]}, {valid_levels[1]}, {valid_levels[2]}]")
             return False
         return True
+    # finished
+
+    @staticmethod
+    # check whether two Ssns are distinct
+    def ensure_distinct(a, b):
+        if a == b:
+            print("Two Ssns of a supervision cannot be the same.")
+            return False
 
     @staticmethod
     # check the validation of contractor company name
@@ -121,6 +129,4 @@ def ensure_not_empty(value: str) -> None:
         if not value or not str(value).strip():
             raise ValueError("value cannot be empty")
 
-def ensure_distinct(a: str, b: str) -> None:
-        if a == b:
-            raise ValueError("values must be distinct")
+

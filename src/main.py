@@ -16,9 +16,7 @@ def main():
 
     supervision_service = EmployeeService(password)
     supervision_service.get_current_employee()
-    supervision_service.register_employee(1000000013, 'Jen', 'mid_level manager')
-    supervision_service.get_current_employee()
-    supervision_service.close()
+
 
 if __name__ == "__main__":
     main()
