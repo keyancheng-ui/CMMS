@@ -119,6 +119,7 @@ class QuickQueryDAO(BaseDAO):
         result = self.execute_query("SELECT * FROM Employee")
         for row in result:
             print(f"Ssn: {row['Ssn']}, Name: {row['Name']}, Level: {row['Emp_Level']}")
+        print()
         return result
 
     # get an employee's name by its ssn
@@ -128,24 +129,30 @@ class QuickQueryDAO(BaseDAO):
         )
         if len(result) > 0:
             print(result[0]['Name'])
-            return result[0]['Name']
+            return result
         else:
             print(f"Employee {ssn} not exist. Insert first or check the input format.")
 
-    # add new employees
     def add_employee(self, ssn, name, emp_level):
-        if Validators.validate_employee_level(emp_level):
-            result = self.execute_query(
-                f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
-            )
-            if len(result) == 0:
-                return self.execute_update(
-                    f"INSERT INTO Employee (Ssn, Name, Emp_Level) VALUES ('{ssn}', '{name}', '{emp_level}')"
-                )
-            else:
-                print("Employee already exist!")
-        else:
-            return
+        # 1. 验证员工等级
+        if not Validators.validate_employee_level(emp_level):
+            raise ValueError("员工等级无效！必须为 'executive officer'、'mid_level manager' 或 'base_level worker'。")
+
+        # 2. 检查 SSN 是否已存在（⚠️ 注意：当前用 f-string，有 SQL 注入风险）
+        result = self.execute_query(
+            f"SELECT * FROM Employee WHERE Ssn = '{ssn}'"
+        )
+
+        if len(result) > 0:
+            print("this Ssn employee already exists")
+            print()
+            raise ValueError(f"员工 SSN '{ssn}' 已存在，不能重复添加！")
+
+
+        # 3. 插入新员工
+        return self.execute_update(
+            f"INSERT INTO Employee (Ssn, Name, Emp_Level) VALUES ('{ssn}', '{name}', '{emp_level}')"
+        )
 
     # get employee by levels
     def get_employees_by_level(self, level):
