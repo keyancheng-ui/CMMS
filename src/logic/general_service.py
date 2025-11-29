@@ -168,3 +168,6 @@ class Service:
     def delete_employee(self, ssn):
         return self.quick_query.delete_employee( ssn)
 
+    def execute_custom_sql(self, sql_statement):
+        return self.quick_query.execute_custom_sql(sql_statement)
+
