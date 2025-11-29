@@ -217,22 +217,26 @@ class ActivityCLI(cmd.Cmd):
 
     # Custom SQL Command
     def do_sql(self, arg):
-        """Execute custom SQL query: sql "SQL_STATEMENT"
-        Example: sql "SELECT * FROM activity WHERE activity_building = 'BuildingA'"
+        """Execute custom SQL query: sql SQL_STATEMENT
+        Example: sql SELECT * FROM activity WHERE activity_building = 'BuildingA'
         WARNING: Use with caution as this executes raw SQL!
         """
         if not arg:
-            print("Usage: sql \"SQL_STATEMENT\"")
+            print("Usage: sql SQL_STATEMENT")
+            print("Example: sql SELECT * FROM Employee WHERE Emp_Level = 'base_level worker'")
             return
 
         try:
-            # 这里需要先在Service中添加execute_custom_sql方法
+            # 直接传递参数，不进行额外的解析
             result = self.service.execute_custom_sql(arg)
             if result:
                 print("\nQuery Result:")
                 print("-" * 80)
-                for row in result:
-                    print(row)
+                if isinstance(result, list):
+                    for row in result:
+                        print(row)
+                else:
+                    print(result)
             else:
                 print("Query executed successfully (no results returned).")
         except Exception as e:

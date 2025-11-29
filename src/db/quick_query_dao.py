@@ -549,3 +549,79 @@ class QuickQueryDAO(BaseDAO):
         print(f"Updated contractor company for employee {temp_employee_ssn} to {new_company_name}")
         return self.execute_update(query)
 
+    def execute_custom_sql(self, sql_query):
+        """
+        执行自定义SQL查询，支持SELECT、INSERT、UPDATE、DELETE等操作
+        """
+        # 检查SQL语句是否为空
+        if not sql_query or not sql_query.strip():
+            print("SQL query cannot be empty.")
+            return "Empty query"
+
+        # 直接使用原始查询，不进行任何引号处理
+        clean_sql = sql_query.strip()
+        sql_lower = clean_sql.lower()
+
+        # 安全检查
+        dangerous_operations = ['drop', 'truncate', 'alter table', 'create table']
+        if any(op in sql_lower for op in dangerous_operations):
+            print("⚠️  WARNING: Potentially destructive SQL operation detected!")
+            print(f"Query: {clean_sql}")
+            confirm = input("Type 'CONFIRM' to proceed, anything else to cancel: ")
+            if confirm != 'CONFIRM':
+                print("Query execution cancelled.")
+                return "Execution cancelled by user"
+
+        # 根据SQL类型执行不同的操作
+        if (sql_lower.startswith('select') or
+                sql_lower.startswith('show') or
+                sql_lower.startswith('describe') or
+                sql_lower.startswith('with')):
+            # 执行查询语句
+            print(f"🔍 Executing query: {clean_sql}")
+            result = self.execute_query(clean_sql)
+
+            if len(result) == 0:
+                print("✅ Query executed successfully. No results returned.")
+                return []
+            else:
+                print(f"✅ Query executed successfully. Returned {len(result)} row(s).")
+
+                # 美化输出
+                if result:
+                    headers = list(result[0].keys())
+
+                    # 计算每列的最大宽度
+                    col_widths = []
+                    for header in headers:
+                        max_width = len(str(header))
+                        for row in result:
+                            max_width = max(max_width, len(str(row.get(header, ''))))
+                        col_widths.append(max_width)
+
+                    # 打印表头
+                    header_line = " | ".join(str(header).ljust(col_widths[i]) for i, header in enumerate(headers))
+                    separator = "-+-".join('-' * width for width in col_widths)
+
+                    print(header_line)
+                    print(separator)
+
+                    # 打印数据行
+                    for row in result:
+                        row_line = " | ".join(
+                            str(row.get(header, '')).ljust(col_widths[i]) for i, header in enumerate(headers))
+                        print(row_line)
+
+                return result
+
+        else:
+            # 执行更新语句（INSERT, UPDATE, DELETE等）
+            print(f"⚡ Executing update: {clean_sql}")
+            affected_rows = self.execute_update(clean_sql)
+
+            if affected_rows:
+                print(f"✅ Update executed successfully. {affected_rows} row(s) affected.")
+                return affected_rows
+            else:
+                print("✅ Update executed successfully.")
+                return 0
