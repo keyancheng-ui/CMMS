@@ -19,8 +19,9 @@ class ActivityCLI(cmd.Cmd):
             self.prompt = "activity> "
             self.intro = """
 ╔══════════════════════════════════════════════════════════════╗
-║                Activity Management System CLI               ║
-║                    Type 'help' for commands                 ║
+║                         CMMS System CLI                      ║
+║                    Type 'help' for commands                  ║
+║                       Thanks for your use!                   ║
 ╚══════════════════════════════════════════════════════════════╝
 """
             print("Successfully connected to database!")
@@ -29,21 +30,17 @@ class ActivityCLI(cmd.Cmd):
             sys.exit(1)
 
     def do_exit(self, arg):
-        """Exit the application: exit"""
         print("Goodbye!")
         return True
 
     def do_quit(self, arg):
-        """Exit the application: quit"""
         return self.do_exit(arg)
 
     def do_EOF(self, arg):
-        """Exit on Ctrl+D"""
         return self.do_exit(arg)
 
     # Activity Commands
     def do_list_activities(self, arg):
-        """List all activities: list_activities"""
         try:
             activities = self.service.get_all_activities()
             if activities:
@@ -59,9 +56,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_create_activity(self, arg):
-        """Create a new activity: create_activity "time" "type" "chemical" "building" "floor" "room"
-        Example: create_activity "2024-01-15 10:00" "Meeting" "No" "BuildingA" "2" "201"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 6:
@@ -75,9 +69,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_get_activity(self, arg):
-        """Get activity details: get_activity "time" "building" "floor" "room"
-        Example: get_activity "2024-01-15 10:00" "BuildingA" "2" "201"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 4:
@@ -93,9 +84,7 @@ class ActivityCLI(cmd.Cmd):
         except Exception as e:
             print(f"Error: {e}")
 
-    # Employee Commands
     def do_list_employees(self, arg):
-        """List all employees: list_employees"""
         try:
             employees = self.service.get_all_employees()
             if employees:
@@ -109,9 +98,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_add_employee(self, arg):
-        """Add a new employee: add_employee "ssn" "name" "level"
-        Example: add_employee "123456789" "John Doe" "Manager"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 3:
@@ -124,9 +110,7 @@ class ActivityCLI(cmd.Cmd):
         except Exception as e:
             print(f"Error: {e}")
 
-    # Location Commands
     def do_list_locations(self, arg):
-        """List all locations: list_locations"""
         try:
             locations = self.service.get_all_locations()
             if locations:
@@ -140,9 +124,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_create_location(self, arg):
-        """Create a new location: create_location "building" "floor" "room"
-        Example: create_location "BuildingA" "3" "301"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 3:
@@ -157,7 +138,6 @@ class ActivityCLI(cmd.Cmd):
 
     # Temporary Employee Commands
     def do_list_temp_employees(self, arg):
-        """List all temporary employees: list_temp_employees"""
         try:
             temp_emps = self.service.get_all_temp_employees()
             if temp_emps:
@@ -171,9 +151,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_create_temp_employee(self, arg):
-        """Create a temporary employee: create_temp_employee "ssn" "company"
-        Example: create_temp_employee "987654321" "ContractorCo"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 2:
@@ -186,9 +163,7 @@ class ActivityCLI(cmd.Cmd):
         except Exception as e:
             print(f"Error: {e}")
 
-    # Report Commands
     def do_employee_summary(self, arg):
-        """Get employee activity summary: employee_summary"""
         try:
             summary = self.service.employee_activity_summary()
             if summary:
@@ -202,7 +177,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_vacant_offices(self, arg):
-        """List vacant offices: vacant_offices"""
         try:
             offices = self.service.get_vacant_offices()
             if offices:
@@ -215,34 +189,28 @@ class ActivityCLI(cmd.Cmd):
         except Exception as e:
             print(f"Error: {e}")
 
-    # Custom SQL Command
     def do_sql(self, arg):
-        """Execute custom SQL query: sql "SQL_STATEMENT"
-        Example: sql "SELECT * FROM activity WHERE activity_building = 'BuildingA'"
-        WARNING: Use with caution as this executes raw SQL!
-        """
         if not arg:
-            print("Usage: sql \"SQL_STATEMENT\"")
+            print("Usage: sql SQL_STATEMENT")
+            print("Example: sql SELECT * FROM Employee WHERE Emp_Level = 'base_level worker'")
             return
 
         try:
-            # 这里需要先在Service中添加execute_custom_sql方法
             result = self.service.execute_custom_sql(arg)
             if result:
                 print("\nQuery Result:")
                 print("-" * 80)
-                for row in result:
-                    print(row)
+                if isinstance(result, list):
+                    for row in result:
+                        print(row)
+                else:
+                    print(result)
             else:
                 print("Query executed successfully (no results returned).")
         except Exception as e:
             print(f"SQL Error: {e}")
 
-    # Assignment Commands
     def do_assign_manager(self, arg):
-        """Assign manager to activity: assign_manager "manager_ssn" "time" "building" "floor" "room"
-        Example: assign_manager "123456789" "2024-01-15 10:00" "BuildingA" "2" "201"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 5:
@@ -256,9 +224,6 @@ class ActivityCLI(cmd.Cmd):
             print(f"Error: {e}")
 
     def do_assign_employee(self, arg):
-        """Assign employee to activity: assign_employee "time" "building" "floor" "room" "worker_ssn"
-        Example: assign_employee "2024-01-15 10:00" "BuildingA" "2" "201" "123456789"
-        """
         try:
             args = shlex.split(arg)
             if len(args) != 5:
@@ -271,9 +236,7 @@ class ActivityCLI(cmd.Cmd):
         except Exception as e:
             print(f"Error: {e}")
 
-    # Help command
     def do_help(self, arg):
-        """Show available commands"""
         commands = {
             'Activity': ['list_activities', 'create_activity', 'get_activity'],
             'Employee': ['list_employees', 'add_employee'],
@@ -291,16 +254,21 @@ class ActivityCLI(cmd.Cmd):
             print(f"\n{category}:")
             for cmd in cmds:
                 method = getattr(self, f'do_{cmd}')
-                print(f"  {cmd:20} - {method.__doc__.split(':')[0]}")
+                # 安全地获取文档字符串
+                doc = method.__doc__
+                if doc is None:
+                    doc = "No description available"
+                else:
+                    # 提取第一行作为简短描述
+                    doc = doc.split('\n')[0].strip()
+                    # 如果包含冒号，取冒号后面的部分
+                    if ':' in doc:
+                        doc = doc.split(':', 1)[1].strip()
+                print(f"  {cmd:20} - {doc}")
         print("\nFor detailed help on a command, type: help <command>")
-
-    # Error handling
-    def default(self, line):
-        print(f"Unknown command: {line}. Type 'help' for available commands.")
 
 
 def get_password():
-    """Get database password from user input"""
     print("Database Authentication Required")
     print("-" * 30)
     password = getpass.getpass("Enter database password: ")
@@ -308,7 +276,6 @@ def get_password():
 
 
 def main():
-    """Main entry point for the CLI"""
     try:
         password = get_password()
         ActivityCLI(password).cmdloop()
