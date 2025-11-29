@@ -172,4 +172,3 @@ class Service:
 
     def execute_custom_sql(self, sql_statement):
         return self.quick_query.execute_custom_sql(sql_statement)
-
