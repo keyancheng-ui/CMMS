@@ -4,9 +4,9 @@ from src.db.location_dao import LocationDAO
 
 class EmployeeService:
     # initialize the class and set needed objects
-    def __init__(self):
-        self.employee_dao = EmployeeDAO()
-        self.location_dao = LocationDAO()
+    def __init__(self, password):
+        self.employee_dao = EmployeeDAO(password)
+        self.location_dao = LocationDAO(password)
 
     # register employee from the user-service level
     def register_employee(self, ssn, name, level):

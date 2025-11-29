@@ -68,7 +68,13 @@ class EmployeeDAO(BaseDAO):
             f"SELECT * FROM Employee WHERE Ssn = '{ssn}'",
         )
         if len(result) > 0:
-            query = f"DELETE FROM Employee WHERE Ssn = '{ssn}'"
-            return self.execute_update(query)
+            result = self.execute_query(
+                f"SELECT * FROM Employee_Supervision WHERE Supervisor_Ssn = '{ssn}' OR Supervisee_Ssn = '{ssn}'"
+            )
+            query1 = f"DELETE FROM Employee WHERE Ssn = '{ssn}'"
+            if len(result) > 0:
+                query2 = f"DELETE FROM Employee_Supervision WHERE Supervisor_Ssn = '{ssn}' OR Supervisee_Ssn = '{ssn}'"
+                self.execute_update(query2)
+            return self.execute_update(query1)
         else:
             print("Employee not exists. Insert first.")

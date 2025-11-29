@@ -4,11 +4,8 @@ from .connection import DatabaseConnection
 class BaseDAO:
 
     # connect to current database
-    def __init__(self, db_connection=None):
-        if db_connection:
-            self.db = db_connection
-        else:
-            self.db = DatabaseConnection(password=input("Enter your own mySQL secret: "), database='appdb')
+    def __init__(self, password=None):
+       self.db = DatabaseConnection(password=password, database='appdb')
 
     # to execute query instruction
     def execute_query(self, query):
