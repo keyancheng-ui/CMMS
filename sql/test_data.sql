@@ -1,7 +1,7 @@
--- 切换到目标数据库（确保先执行 schema.sql 建表成功）
+-- 切换到目标数据库
 USE appdb;
 
--- 清空已有数据（避免重复插入报错，按外键依赖逆序删除）
+-- 清空已有数据（按外键依赖逆序删除）
 DELETE FROM Applied_To;
 DELETE FROM Temp_Employee_Work_On;
 DELETE FROM Employee_Work_On;
@@ -15,7 +15,7 @@ DELETE FROM Office;
 DELETE FROM Employee;
 DELETE FROM Location;
 
--- 1. Location 表（12条数据）- 无外键依赖，优先插入
+-- 1. Location 表（12条数据）
 INSERT INTO Location (Building, Floor, Room_number)
 VALUES
 ('Main_Building', 1, 101),
@@ -31,58 +31,58 @@ VALUES
 ('Service_Building', 1, 109),
 ('Service_Building', 2, 210);
 
--- 2. Employee 表（12条数据）- 无外键依赖
+-- 2. Employee 表（12条数据）
 INSERT INTO Employee (Ssn, Name, Emp_Level)
 VALUES
-('1', '张三', 'executive officer'),  -- 高管
-('2', '李四', 'mid_level manager'),  -- 中层经理
-('3', '王五', 'mid_level manager'),  -- 中层经理
-('4', '赵六', 'base_level worker'),  -- 基层员工
-('5', '孙七', 'base_level worker'),  -- 基层员工
-('6', '周八', 'base_level worker'),  -- 基层员工
-('7', '吴九', 'mid_level manager'),  -- 中层经理
-('8', '郑十', 'base_level worker'),  -- 基层员工
-('9', '钱十一', 'base_level worker'),-- 基层员工
-('10', '冯十二', 'executive officer'),-- 高管
-('11', '陈十三', 'base_level worker'),-- 基层员工
-('12', '褚十四', 'base_level worker');-- 基层员工
+('1', '张三', 'executive officer'),
+('2', '李四', 'mid_level manager'),
+('3', '王五', 'mid_level manager'),
+('4', '赵六', 'base_level worker'),
+('5', '孙七', 'base_level worker'),
+('6', '周八', 'base_level worker'),
+('7', '吴九', 'mid_level manager'),
+('8', '郑十', 'base_level worker'),
+('9', '钱十一', 'base_level worker'),
+('10', '冯十二', 'executive officer'),
+('11', '陈十三', 'base_level worker'),
+('12', '褚十四', 'base_level worker');
 
--- 3. Office 表（12条数据）- 依赖 Location + Employee
+-- 3. Office 表（12条数据）- 修正 OwnerSsn 引用
 INSERT INTO Office (OwnerSsn, Office_Building, Office_Floor, Office_RoomNum)
 VALUES
-('1000000001', 'Admin_Building', 3, 308),    -- 高管张三办公室
-('1000000002', 'Main_Building', 1, 101),     -- 中层李四办公室
-('1000000003', 'Tech_Building', 2, 204),     -- 中层王五办公室
-('1000000007', 'Tech_Building', 3, 305),     -- 中层吴九办公室
-('1000000010', 'Admin_Building', 2, 207),    -- 高管冯十二办公室
-(NULL, 'Main_Building', 1, 102),               -- 无归属人办公室
-(NULL, 'Main_Building', 2, 201),               -- 无归属人办公室
-(NULL, 'Tech_Building', 1, 103),               -- 无归属人办公室
-(NULL, 'Admin_Building', 1, 106),              -- 无归属人办公室
-(NULL, 'Service_Building', 1, 109),            -- 无归属人办公室
-('1000000002', 'Service_Building', 2, 210),  -- 中层李四备用办公室
-('1000000003', 'Main_Building', 3, 301);     -- 中层王五备用办公室
+('1', 'Admin_Building', 3, 308),
+('2', 'Main_Building', 1, 101),
+('3', 'Tech_Building', 2, 204),
+('7', 'Tech_Building', 3, 305),
+('10', 'Admin_Building', 2, 207),
+(NULL, 'Main_Building', 1, 102),
+(NULL, 'Main_Building', 2, 201),
+(NULL, 'Tech_Building', 1, 103),
+(NULL, 'Admin_Building', 1, 106),
+(NULL, 'Service_Building', 1, 109),
+('2', 'Service_Building', 2, 210),
+('3', 'Main_Building', 3, 301);
 
--- 4. Employee_Supervision 表（15条数据）- 依赖 Employee
--- INSERT INTO Employee_Supervision (Supervisor_Ssn, Supervisee_Ssn)
--- VALUES
--- ('1000000001', '1000000002'),  -- 高管张三 → 中层李四
--- ('1000000001', '1000000003'),  -- 高管张三 → 中层王五
--- ('1000000001', '1000000007'),  -- 高管张三 → 中层吴九
--- ('1000000010', '1000000002'),  -- 高管冯十二 → 中层李四
--- ('1000000010', '1000000003'),  -- 高管冯十二 → 中层王五
--- ('1000000010', '1000000007'),  -- 高管冯十二 → 中层吴九
--- ('1000000002', '1000000004'),  -- 中层李四 → 基层赵六
--- ('1000000002', '1000000005'),  -- 中层李四 → 基层孙七
--- ('1000000002', '1000000008'),  -- 中层李四 → 基层郑十
--- ('1000000003', '1000000006'),  -- 中层王五 → 基层周八
--- ('1000000003', '1000000009'),  -- 中层王五 → 基层钱十一
--- ('1000000007', '1000000011'),  -- 中层吴九 → 基层陈十三
--- ('1000000007', '1000000012'),  -- 中层吴九 → 基层褚十四
--- ('1000000002', '1000000012'),  -- 中层李四 → 基层褚十四
--- ('1000000003', '1000000008');  -- 中层王五 → 基层郑十
+-- 4. Employee_Supervision 表（15条数据）- 取消注释并修正 Ssn 引用
+INSERT INTO Employee_Supervision (Supervisor_Ssn, Supervisee_Ssn)
+VALUES
+('1', '2'),
+('1', '3'),
+('1', '7'),
+('10', '2'),
+('10', '3'),
+('10', '7'),
+('2', '4'),
+('2', '5'),
+('2', '8'),
+('3', '6'),
+('3', '9'),
+('7', '11'),
+('7', '12'),
+('2', '12'),
+('3', '8');
 
--- 5. Temporary_Employee 表（15条数据）- 无外键依赖
+-- 5. Temporary_Employee 表（15条数据）
 INSERT INTO Temporary_Employee (TempSsn, Company_name)
 VALUES
 ('T200000001', '保洁服务有限公司'),
@@ -101,26 +101,26 @@ VALUES
 ('T200000014', '灯具更换服务公司'),
 ('T200000015', '墙面翻新服务公司');
 
--- 6. TempSupervise 表（15条数据）- 依赖 Employee + Temporary_Employee
+-- 6. TempSupervise 表（15条数据）- 修正 Ssn 引用
 INSERT INTO TempSupervise (Supervisor_Ssn_midlevel_manager, Supervisee_Ssn_temp_employee)
 VALUES
-('1000000002', 'T200000001'),  -- 中层李四 → 临时保洁
-('1000000002', 'T200000002'),  -- 中层李四 → 临时维修
-('1000000003', 'T200000003'),  -- 中层王五 → 临时绿化
-('1000000003', 'T200000004'),  -- 中层王五 → 临时设备检测
-('1000000007', 'T200000005'),  -- 中层吴九 → 临时水电维修
-('1000000007', 'T200000006'),  -- 中层吴九 → 临时外墙清洁
-('1000000002', 'T200000007'),  -- 中层李四 → 临时垃圾清运
-('1000000003', 'T200000008'),  -- 中层王五 → 临时空调维护
-('1000000007', 'T200000009'),  -- 中层吴九 → 临时消防检查
-('1000000002', 'T200000010'),  -- 中层李四 → 临时电梯维保
-('1000000003', 'T200000011'),  -- 中层王五 → 临时管道疏通
-('1000000007', 'T200000012'),  -- 中层吴九 → 临时地毯清洁
-('1000000002', 'T200000013'),  -- 中层李四 → 临时门窗维修
-('1000000003', 'T200000014'),  -- 中层王五 → 临时灯具更换
-('1000000007', 'T200000015');  -- 中层吴九 → 临时墙面翻新
+('2', 'T200000001'),
+('2', 'T200000002'),
+('3', 'T200000003'),
+('3', 'T200000004'),
+('7', 'T200000005'),
+('7', 'T200000006'),
+('2', 'T200000007'),
+('3', 'T200000008'),
+('7', 'T200000009'),
+('2', 'T200000010'),
+('3', 'T200000011'),
+('7', 'T200000012'),
+('2', 'T200000013'),
+('3', 'T200000014'),
+('7', 'T200000015');
 
--- 7. Contractor_Company 表（15条数据）- 依赖 Temporary_Employee
+-- 7. Contractor_Company 表（15条数据）
 INSERT INTO Contractor_Company (Temp_Employee_Ssn, name)
 VALUES
 ('T200000001', '保洁服务有限公司'),
@@ -139,7 +139,7 @@ VALUES
 ('T200000014', '灯具更换服务公司'),
 ('T200000015', '墙面翻新服务公司');
 
--- 8. Activity 表（15条数据）- 依赖 Location
+-- 8. Activity 表（15条数据）
 INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum)
 VALUES
 ('2025-11-20', 'daily campus cleaning', 1, 'Main_Building', 1, 101),
@@ -158,64 +158,64 @@ VALUES
 ('2025-11-26', 'daily campus cleaning', 0, 'Tech_Building', 2, 204),
 ('2025-11-27', 'weather-related issues', 0, 'Main_Building', 2, 201);
 
--- 9. Mid_Level_Manage_Activity 表（15条数据）- 依赖 Employee + Activity
+-- 9. Mid_Level_Manage_Activity 表（15条数据）- 修正 Ssn 引用
 INSERT INTO Mid_Level_Manage_Activity (Manager_Ssn, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
 VALUES
-('1000000002', 'Main_Building', 1, 101, '2025-11-20'),
-('1000000002', 'Main_Building', 1, 102, '2025-11-20'),
-('1000000003', 'Tech_Building', 2, 204, '2025-11-21'),
-('1000000003', 'Admin_Building', 3, 308, '2025-11-21'),
-('1000000007', 'Main_Building', 2, 201, '2025-11-22'),
-('1000000007', 'Tech_Building', 3, 305, '2025-11-22'),
-('1000000002', 'Service_Building', 1, 109, '2025-11-23'),
-('1000000002', 'Admin_Building', 1, 106, '2025-11-23'),
-('1000000003', 'Main_Building', 3, 301, '2025-11-24'),
-('1000000003', 'Tech_Building', 1, 103, '2025-11-24'),
-('1000000007', 'Service_Building', 2, 210, '2025-11-25'),
-('1000000007', 'Main_Building', 1, 101, '2025-11-25'),
-('1000000002', 'Admin_Building', 2, 207, '2025-11-26'),
-('1000000002', 'Tech_Building', 2, 204, '2025-11-26'),
-('1000000003', 'Main_Building', 2, 201, '2025-11-27');
+('2', 'Main_Building', 1, 101, '2025-11-20'),
+('2', 'Main_Building', 1, 102, '2025-11-20'),
+('3', 'Tech_Building', 2, 204, '2025-11-21'),
+('3', 'Admin_Building', 3, 308, '2025-11-21'),
+('7', 'Main_Building', 2, 201, '2025-11-22'),
+('7', 'Tech_Building', 3, 305, '2025-11-22'),
+('2', 'Service_Building', 1, 109, '2025-11-23'),
+('2', 'Admin_Building', 1, 106, '2025-11-23'),
+('3', 'Main_Building', 3, 301, '2025-11-24'),
+('3', 'Tech_Building', 1, 103, '2025-11-24'),
+('7', 'Service_Building', 2, 210, '2025-11-25'),
+('7', 'Main_Building', 1, 101, '2025-11-25'),
+('2', 'Admin_Building', 2, 207, '2025-11-26'),
+('2', 'Tech_Building', 2, 204, '2025-11-26'),
+('3', 'Main_Building', 2, 201, '2025-11-27');
 
--- 10. Employee_Work_On 表（15条数据）- 依赖 Employee + Activity
+-- 10. Employee_Work_On 表（15条数据）- 修正 Ssn 引用
 INSERT INTO Employee_Work_On (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn)
 VALUES
-('2025-11-20', 'Main_Building', 1, 101, '1000000004'),  -- 赵六 → 主楼101清洁
-('2025-11-20', 'Main_Building', 1, 102, '1000000005'),  -- 孙七 → 主楼102清洁
-('2025-11-21', 'Tech_Building', 2, 204, '1000000006'),  -- 周八 → 科技楼204老化维护
-('2025-11-21', 'Admin_Building', 3, 308, '1000000008'),  -- 郑十 → 行政楼308天气维修
-('2025-11-22', 'Main_Building', 2, 201, '1000000009'),  -- 钱十一 → 主楼201清洁
-('2025-11-22', 'Tech_Building', 3, 305, '1000000011'),  -- 陈十三 → 科技楼305老化维护
-('2025-11-23', 'Service_Building', 1, 109, '1000000012'),-- 褚十四 → 服务楼109天气维修
-('2025-11-23', 'Admin_Building', 1, 106, '1000000004'),  -- 赵六 → 行政楼106清洁
-('2025-11-24', 'Main_Building', 3, 301, '1000000005'),  -- 孙七 → 主楼301老化维护
-('2025-11-24', 'Tech_Building', 1, 103, '1000000006'),  -- 周八 → 科技楼103清洁
-('2025-11-25', 'Service_Building', 2, 210, '1000000008'),-- 郑十 → 服务楼210天气维修
-('2025-11-25', 'Main_Building', 1, 101, '1000000009'),  -- 钱十一 → 主楼101清洁
-('2025-11-26', 'Admin_Building', 2, 207, '1000000011'),  -- 陈十三 → 行政楼207清洁
-('2025-11-26', 'Tech_Building', 2, 204, '1000000012'),  -- 褚十四 → 科技楼204清洁
-('2025-11-27', 'Main_Building', 2, 201, '1000000004');  -- 赵六 → 主楼201天气维修
+('2025-11-20', 'Main_Building', 1, 101, '4'),
+('2025-11-20', 'Main_Building', 1, 102, '5'),
+('2025-11-21', 'Tech_Building', 2, 204, '6'),
+('2025-11-21', 'Admin_Building', 3, 308, '8'),
+('2025-11-22', 'Main_Building', 2, 201, '9'),
+('2025-11-22', 'Tech_Building', 3, 305, '11'),
+('2025-11-23', 'Service_Building', 1, 109, '12'),
+('2025-11-23', 'Admin_Building', 1, 106, '4'),
+('2025-11-24', 'Main_Building', 3, 301, '5'),
+('2025-11-24', 'Tech_Building', 1, 103, '6'),
+('2025-11-25', 'Service_Building', 2, 210, '8'),
+('2025-11-25', 'Main_Building', 1, 101, '9'),
+('2025-11-26', 'Admin_Building', 2, 207, '11'),
+('2025-11-26', 'Tech_Building', 2, 204, '12'),
+('2025-11-27', 'Main_Building', 2, 201, '4');
 
--- 11. Temp_Employee_Work_On 表（15条数据）- 依赖 Temporary_Employee + Activity
+-- 11. Temp_Employee_Work_On 表（15条数据）
 INSERT INTO Temp_Employee_Work_On (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn)
 VALUES
-('2025-11-20', 'Main_Building', 1, 101, 'T200000001'),  -- 临时保洁 → 主楼101清洁
-('2025-11-20', 'Main_Building', 1, 102, 'T200000002'),  -- 临时维修 → 主楼102维修
-('2025-11-21', 'Tech_Building', 2, 204, 'T200000003'),  -- 临时绿化 → 科技楼204绿化
-('2025-11-21', 'Admin_Building', 3, 308, 'T200000004'),  -- 临时设备检测 → 行政楼308检测
-('2025-11-22', 'Main_Building', 2, 201, 'T200000005'),  -- 临时水电 → 主楼201水电维修
-('2025-11-22', 'Tech_Building', 3, 305, 'T200000006'),  -- 临时外墙清洁 → 科技楼305外墙
-('2025-11-23', 'Service_Building', 1, 109, 'T200000007'),-- 临时垃圾清运 → 服务楼109清运
-('2025-11-23', 'Admin_Building', 1, 106, 'T200000008'),  -- 临时空调维护 → 行政楼106空调
-('2025-11-24', 'Main_Building', 3, 301, 'T200000009'),  -- 临时消防检查 → 主楼301消防
-('2025-11-24', 'Tech_Building', 1, 103, 'T200000010'),  -- 临时电梯维保 → 科技楼103电梯
-('2025-11-25', 'Service_Building', 2, 210, 'T200000011'),-- 临时管道疏通 → 服务楼210管道
-('2025-11-25', 'Main_Building', 1, 101, 'T200000012'),  -- 临时地毯清洁 → 主楼101地毯
-('2025-11-26', 'Admin_Building', 2, 207, 'T200000013'),  -- 临时门窗维修 → 行政楼207门窗
-('2025-11-26', 'Tech_Building', 2, 204, 'T200000014'),  -- 临时灯具更换 → 科技楼204灯具
-('2025-11-27', 'Main_Building', 2, 201, 'T200000015');  -- 临时墙面翻新 → 主楼201墙面
+('2025-11-20', 'Main_Building', 1, 101, 'T200000001'),
+('2025-11-20', 'Main_Building', 1, 102, 'T200000002'),
+('2025-11-21', 'Tech_Building', 2, 204, 'T200000003'),
+('2025-11-21', 'Admin_Building', 3, 308, 'T200000004'),
+('2025-11-22', 'Main_Building', 2, 201, 'T200000005'),
+('2025-11-22', 'Tech_Building', 3, 305, 'T200000006'),
+('2025-11-23', 'Service_Building', 1, 109, 'T200000007'),
+('2025-11-23', 'Admin_Building', 1, 106, 'T200000008'),
+('2025-11-24', 'Main_Building', 3, 301, 'T200000009'),
+('2025-11-24', 'Tech_Building', 1, 103, 'T200000010'),
+('2025-11-25', 'Service_Building', 2, 210, 'T200000011'),
+('2025-11-25', 'Main_Building', 1, 101, 'T200000012'),
+('2025-11-26', 'Admin_Building', 2, 207, 'T200000013'),
+('2025-11-26', 'Tech_Building', 2, 204, 'T200000014'),
+('2025-11-27', 'Main_Building', 2, 201, 'T200000015');
 
--- 12. Applied_To 表（15条数据）- 依赖 Location + Activity
+-- 12. Applied_To 表（15条数据）
 INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number, Applied_Reason)
 VALUES
 ('2025-11-20', 'Main_Building', 1, 101, '日常清洁需中性清洁剂申请'),
