@@ -1,7 +1,5 @@
--- 切换到目标数据库
 USE appdb;
 
--- 清空已有数据（按外键依赖逆序删除）
 DELETE FROM Applied_To;
 DELETE FROM Temp_Employee_Work_On;
 DELETE FROM Employee_Work_On;
@@ -15,7 +13,6 @@ DELETE FROM Office;
 DELETE FROM Employee;
 DELETE FROM Location;
 
--- 1. Location 表（12条数据）
 INSERT INTO Location (Building, Floor, Room_number)
 VALUES
 ('Main_Building', 1, 101),
@@ -31,7 +28,6 @@ VALUES
 ('Service_Building', 1, 109),
 ('Service_Building', 2, 210);
 
--- 2. Employee 表（12条数据）
 INSERT INTO Employee (Ssn, Name, Emp_Level)
 VALUES
 ('1', '张三', 'executive officer'),
@@ -47,7 +43,6 @@ VALUES
 ('11', '陈十三', 'base_level worker'),
 ('12', '褚十四', 'base_level worker');
 
--- 3. Office 表（12条数据）- 修正 OwnerSsn 引用
 INSERT INTO Office (OwnerSsn, Office_Building, Office_Floor, Office_RoomNum)
 VALUES
 ('1', 'Admin_Building', 3, 308),
@@ -63,7 +58,6 @@ VALUES
 ('2', 'Service_Building', 2, 210),
 ('3', 'Main_Building', 3, 301);
 
--- 4. Employee_Supervision 表（15条数据）- 取消注释并修正 Ssn 引用
 INSERT INTO Employee_Supervision (Supervisor_Ssn, Supervisee_Ssn)
 VALUES
 ('1', '2'),
@@ -82,7 +76,6 @@ VALUES
 ('2', '12'),
 ('3', '8');
 
--- 5. Temporary_Employee 表（15条数据）
 INSERT INTO Temporary_Employee (TempSsn, Company_name)
 VALUES
 ('T200000001', '保洁服务有限公司'),
@@ -101,7 +94,6 @@ VALUES
 ('T200000014', '灯具更换服务公司'),
 ('T200000015', '墙面翻新服务公司');
 
--- 6. TempSupervise 表（15条数据）- 修正 Ssn 引用
 INSERT INTO TempSupervise (Supervisor_Ssn_midlevel_manager, Supervisee_Ssn_temp_employee)
 VALUES
 ('2', 'T200000001'),
@@ -120,7 +112,6 @@ VALUES
 ('3', 'T200000014'),
 ('7', 'T200000015');
 
--- 7. Contractor_Company 表（15条数据）
 INSERT INTO Contractor_Company (Temp_Employee_Ssn, name)
 VALUES
 ('T200000001', '保洁服务有限公司'),
@@ -139,7 +130,6 @@ VALUES
 ('T200000014', '灯具更换服务公司'),
 ('T200000015', '墙面翻新服务公司');
 
--- 8. Activity 表（15条数据）
 INSERT INTO Activity (Activity_Time, Activity_Type, Require_Chemical, Activity_Building, Activity_Floor, Activity_RoomNum)
 VALUES
 ('2025-11-20', 'daily campus cleaning', 1, 'Main_Building', 1, 101),
@@ -158,7 +148,6 @@ VALUES
 ('2025-11-26', 'daily campus cleaning', 0, 'Tech_Building', 2, 204),
 ('2025-11-27', 'weather-related issues', 0, 'Main_Building', 2, 201);
 
--- 9. Mid_Level_Manage_Activity 表（15条数据）- 修正 Ssn 引用
 INSERT INTO Mid_Level_Manage_Activity (Manager_Ssn, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum, Manage_Activity_Time)
 VALUES
 ('2', 'Main_Building', 1, 101, '2025-11-20'),
@@ -177,7 +166,6 @@ VALUES
 ('2', 'Tech_Building', 2, 204, '2025-11-26'),
 ('3', 'Main_Building', 2, 201, '2025-11-27');
 
--- 10. Employee_Work_On 表（15条数据）- 修正 Ssn 引用
 INSERT INTO Employee_Work_On (Working_Time, Working_Building, Working_Floor, Working_Room_number, Working_Worker_Ssn)
 VALUES
 ('2025-11-20', 'Main_Building', 1, 101, '4'),
@@ -196,7 +184,6 @@ VALUES
 ('2025-11-26', 'Tech_Building', 2, 204, '12'),
 ('2025-11-27', 'Main_Building', 2, 201, '4');
 
--- 11. Temp_Employee_Work_On 表（15条数据）
 INSERT INTO Temp_Employee_Work_On (Temp_Working_Time, Temp_Working_Building, Temp_Working_Floor, Temp_Working_Room_number, Temp_Working_Worker_Ssn)
 VALUES
 ('2025-11-20', 'Main_Building', 1, 101, 'T200000001'),
@@ -215,7 +202,6 @@ VALUES
 ('2025-11-26', 'Tech_Building', 2, 204, 'T200000014'),
 ('2025-11-27', 'Main_Building', 2, 201, 'T200000015');
 
--- 12. Applied_To 表（15条数据）
 INSERT INTO Applied_To (Applied_Time, Applied_Building, Applied_Floor, Applied_Room_number, Applied_Reason)
 VALUES
 ('2025-11-20', 'Main_Building', 1, 101, '日常清洁需中性清洁剂申请'),
