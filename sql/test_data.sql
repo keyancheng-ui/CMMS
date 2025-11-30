@@ -18,7 +18,10 @@ SELECT * FROM (
     ROW('Admin_Building', 2, 207),
     ROW('Admin_Building', 3, 308),
     ROW('Service_Building', 1, 109),
-    ROW('Service_Building', 2, 210)
+    ROW('Service_Building', 2, 210),
+    ROW('FrontGate', 0, 0),
+    ROW('BackGate', 0, 0),
+    ROW('Square', 0, 0)
 ) AS new_vals (Building, Floor, Room_number)
 WHERE NOT EXISTS (
     SELECT 1 FROM Location l

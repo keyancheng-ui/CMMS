@@ -28,7 +28,7 @@ class Validators:
     # 3. check the validation of floor number
     @staticmethod
     def validate_floor(floor):
-        if floor < 0:
+        if int(floor) < 0:
             return False
         return True
     # finished
@@ -36,7 +36,7 @@ class Validators:
     # 4. check the validation of room number
     @staticmethod
     def validate_room(room):
-        if room <= 100:
+        if int(room) <= 100:
             return False
         return True
     # finished
@@ -44,7 +44,7 @@ class Validators:
     # 5. check the validation of chemical required condition
     @staticmethod
     def validate_chemical_requirement(require_chemical):
-        if require_chemical not in [0, 1]:
+        if int(require_chemical) not in [0, 1]:
             return False
         return True
     # finished
