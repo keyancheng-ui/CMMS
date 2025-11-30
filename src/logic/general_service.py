@@ -53,21 +53,14 @@ class Service:
 
         return self.quick_query.remove_temp_employee_from_activity(temp_working_time, temp_working_building,temp_working_floor, temp_working_room_number,temp_working_worker_ssn)
 
-    def employee_activity_summary(self):
-        return self.quick_query.employee_activity_summary()
 
 
     #about temporary employee
 
 
-    def create_temp_employee(self, temp_ssn, company_name):
-        return self.quick_query.create_temp_employee(temp_ssn, company_name)
-
     def create_temp_employee_with_company(self, temp_ssn, company_name, contractor_company_name):
         return self.quick_query.create_temp_employee_with_company(temp_ssn, company_name, contractor_company_name)
 
-    def add_contractor_company_to_employee(self, temp_ssn, contractor_company_name):
-        return self.quick_query.add_contractor_company_to_employee(temp_ssn, contractor_company_name)
 
     def get_temp_employee_with_company(self, temp_ssn):
         return self.quick_query.get_temp_employee_with_company(temp_ssn)
@@ -99,7 +92,7 @@ class Service:
         return self.quick_query.delete_supervision(supervisor_ssn, supervisee_ssn)
 
     def set_temp_supervision(self, temp_employee_ssn, supervisor_ssn):
-        return self.quick_query.set_temp_supervision(self, temp_employee_ssn, supervisor_ssn)
+        return self.quick_query.set_temp_supervision(temp_employee_ssn, supervisor_ssn)
 
     def list_temp_supervision(self, supervisee_ssn):
         return self.quick_query.list_temp_supervision(supervisee_ssn)

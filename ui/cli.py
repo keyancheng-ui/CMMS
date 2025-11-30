@@ -173,25 +173,13 @@ class ActivityCLI(cmd.Cmd):
                 return
 
             ssn, company = args
-            result = self.service.create_temp_employee(ssn, company)
+            result = self.service.create_temp_employee_with_company(ssn, company, company)
             print(f"Temporary employee created successfully: {result}")
         except Exception as e:
             print(f"Error: {e}")
 
     # Report Commands
-    def do_employee_summary(self, arg):
-        """Get employee activity summary: employee_summary"""
-        try:
-            summary = self.service.employee_activity_summary()
-            if summary:
-                print("\nEmployee Activity Summary:")
-                print("-" * 80)
-                for item in summary:
-                    print(item)
-            else:
-                print("No summary data available.")
-        except Exception as e:
-            print(f"Error: {e}")
+
 
     def do_vacant_offices(self, arg):
         """List vacant offices: vacant_offices"""
@@ -267,7 +255,7 @@ class ActivityCLI(cmd.Cmd):
             'Temporary Employee': ['list_temp_employees', 'create_temp_employee'],
             'Location': ['list_locations', 'create_location'],
             'Assignment': ['assign_manager', 'assign_employee'],
-            'Reports': ['employee_summary', 'vacant_offices'],
+            'Reports': [ 'vacant_offices'],
             'Advanced': ['sql'],
             'System': ['help', 'exit', 'quit']
         }
