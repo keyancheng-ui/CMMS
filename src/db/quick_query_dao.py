@@ -222,7 +222,7 @@ class QuickQueryDAO(BaseDAO):
     # insert a new campus location to the database
     def create_location(self, building, floor, room_number):
        result = self.execute_query(
-            f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'",
+            f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND Room_number = '{room_number}'",
        )
        if len(result) == 0:
            return self.execute_update(
@@ -236,7 +236,7 @@ class QuickQueryDAO(BaseDAO):
         room_valid, room_msg = Validators.validate_room(room_number)
         if floor_valid and room_valid:
             result = self.execute_query(
-                f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND RoomNumber = '{room_number}'"
+                f"SELECT * FROM Location WHERE Building = '{building}' AND Floor = '{floor}' AND Room_number = '{room_number}'"
             )
             if len(result) == 0:
                 attention = "It exists!"
