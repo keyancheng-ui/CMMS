@@ -3,7 +3,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox, simpledialog, scrolledtext
 from src.db.validators import *
-from src.db import QuickQueryDAO  # 假设你把这个类放在 db/service.py 并导出
+from src.db import QuickQueryDAO
 
 
 class QuickQueryGUI:
@@ -59,41 +59,42 @@ class QuickQueryGUI:
         self.emp_tree.heading("Level", text="等级")
         self.emp_tree.pack(fill=tk.BOTH, expand=True, pady=5)
 
+    # ------ the function to create an adding-employee dialog ------
     def add_employee_dialog(self):
         dialog = tk.Toplevel(self.root)
-        dialog.title("新增员工")
-        dialog.geometry("350x200")
+        dialog.title("New Employee")
+        dialog.geometry("380x200") # size changed
         dialog.resizable(False, False)
-        dialog.transient(self.root)  # 设置为模态（依附于主窗口）
-        dialog.grab_set()  # 阻止操作主窗口，直到此窗口关闭
-        dialog.focus_set()  # 聚焦到此窗口
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.focus_set()
 
-        # SSN
-        ttk.Label(dialog, text="SSN:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        # Ssn
+        ttk.Label(dialog, text="Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
         ssn_var = tk.StringVar()
         ssn_entry = ttk.Entry(dialog, textvariable=ssn_var, width=30)
         ssn_entry.grid(row=0, column=1, padx=10, pady=10)
 
-        # 姓名
-        ttk.Label(dialog, text="姓名:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        # Name
+        ttk.Label(dialog, text="Name:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
         name_var = tk.StringVar()
         name_entry = ttk.Entry(dialog, textvariable=name_var, width=30)
         name_entry.grid(row=1, column=1, padx=10, pady=10)
 
-        # 等级（下拉菜单）
-        ttk.Label(dialog, text="等级:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        # Levels (using a menu)
+        ttk.Label(dialog, text="Level:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
         level_var = tk.StringVar()
         level_combo = ttk.Combobox(
             dialog,
             textvariable=level_var,
             values=["executive officer", "mid_level manager", "base_level worker"],
-            state="readonly",  # 只允许选择，不允许手输
+            state="readonly",  # only allow choices, not allow inputs
             width=27
         )
         level_combo.grid(row=2, column=1, padx=10, pady=10)
-        level_combo.set("base_level worker")  # 默认值
+        level_combo.set("base_level worker")  # default value
 
-        # 按钮
+        # button
         button_frame = ttk.Frame(dialog)
         button_frame.grid(row=3, column=0, columnspan=2, pady=15)
 
@@ -103,41 +104,41 @@ class QuickQueryGUI:
             level = level_var.get().strip()
 
             if not ssn or not name or not level:
-                messagebox.showwarning("输入错误", "所有字段均为必填！", parent=dialog)
+                messagebox.showwarning("Input Error", "All Sections Require Inputs", parent=dialog)
                 return
 
             try:
                 self.service.add_employee(ssn, name, level)
-                messagebox.showinfo("成功", "员工已成功添加！", parent=dialog)
-                self.show_all_employees()  # 刷新列表
+                messagebox.showinfo("Success", "Employee Registered", parent=dialog)
+                self.show_all_employees()  # renew the list
                 dialog.destroy()
             except ValueError as e:
-                # 捕获 DAO 抛出的业务逻辑错误
-                messagebox.showwarning("操作失败", str(e), parent=dialog)
+                # catch errors thrown by DAO
+                messagebox.showwarning("Instruction Failed", str(e), parent=dialog)
             except Exception as e:
-                # 捕获其他错误（如数据库连接失败）
-                messagebox.showerror("系统错误", str(e), parent=dialog)
+                # catch other errors
+                messagebox.showerror("System Failed", str(e), parent=dialog)
 
         def on_cancel():
             dialog.destroy()
 
-        ttk.Button(button_frame, text="确定", command=on_submit).pack(side=tk.LEFT, padx=10)
-        ttk.Button(button_frame, text="取消", command=on_cancel).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="OK", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=10)
 
-        # 初始聚焦到 SSN 输入框
+        # focus on this dialog first
         ssn_entry.focus()
+        # ------ finish editing ------
 
+    # ------ Below are functions for "Employee" section ------
 
-
-
-    #1. ok
+    # 1. finish
     def show_all_employees(self):
         try:
             self.clear_tree(self.emp_tree)
-            emps = self.service.get_all_employees()  # 假设返回 [{'Ssn':..., 'Name':..., 'Emp_Level':...}, ...]
+            emps = self.service.get_all_employees() # return a list of dictionary
 
             for emp in emps:
-                # ✅ 从字典中按顺序提取字段，适配 Treeview 的 ("SSN", "Name", "Level")
+                # get qualified tuples ("SSN", "Name", "Level")
                 values = (
                     emp.get('Ssn', ''),
                     emp.get('Name', ''),
@@ -145,102 +146,715 @@ class QuickQueryGUI:
                 )
                 self.emp_tree.insert("", "end", values=values)
 
-            self.update_status(f"加载 {len(emps)} 名员工")
+            self.update_status(f"load {len(emps)} employees")
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
+    # settle both gui and cli
 
-    #2.ok
+    # 2. finish
     def add_employee_gui(self):
-        """触发自定义员工添加对话框"""
-        self.add_employee_dialog()  # ← 这里要加 ()
+        # trigger adding_employee dialog
+        self.add_employee_dialog()
+    # settle both gui and cli
 
-    #3.ok
+    # 3. finish
     def lookup_employee_by_ssn(self):
-        ssn = simpledialog.askstring("查询员工", "输入 SSN:", parent=self.root)
-        if ssn is None:
-            return  # 用户点了取消
+        ssn = simpledialog.askstring("Search Employee", "Input Ssn:", parent=self.root)
+        if ssn is None:  # if users click cancel
+            return
 
         ssn = ssn.strip()
         if not ssn:
-            messagebox.showwarning("输入错误", "SSN 不能为空", parent=self.root)
+            messagebox.showwarning("Error", "Empty Ssn", parent=self.root)
             return
 
         try:
-            result = self.service.get_employee_by_ssn(ssn)  # 假设返回 [{'Ssn':..., 'Name':..., 'Emp_Level':...}]
+            result = self.service.get_employee_by_ssn(ssn)
             self.clear_tree(self.emp_tree)
 
             if result and len(result) > 0:
-                emp = result[0]  # 取第一个（应该只有一个）
-                # ✅ 从字典中提取字段，按 Treeview 列顺序构造元组
+                emp = result[0]
                 values = (
                     emp.get('Ssn', ''),
                     emp.get('Name', ''),
                     emp.get('Emp_Level', '')
                 )
                 self.emp_tree.insert("", "end", values=values)
-                self.update_status(f"找到员工：{values[1]}")
+                self.update_status(f"find employee：{values[1]}")
             else:
-                messagebox.showinfo("提示", "未找到该员工", parent=self.root)
-                self.update_status("未找到员工")
+                messagebox.showinfo("Attention", "No such employee.", parent=self.root)
+                self.update_status("Employee not found")
 
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
-            self.update_status("查询出错")
+            messagebox.showerror("Error", str(e), parent=self.root)
+            self.update_status("Wrong search")
+    # settle both gui and cli
 
-
-
-
-
-
-
-    # 已完成——————————————————
-
-
-
+    # 4. finish
     def update_employee_level_gui(self):
-        ssn = simpledialog.askstring("更新等级", "员工 SSN:")
-        new_level_str = simpledialog.askstring("更新等级", "新等级 (executive officer,mid_level manager, base_level worker):")
+        ssn = simpledialog.askstring("Update", "Employee Ssn:")
+        new_level_str = simpledialog.askstring("Update", "New level (executive officer, mid_level manager, base_level worker):")
         if ssn and new_level_str:
             try:
                 new_level = new_level_str
                 self.service.update_employee(ssn, new_level)
-                messagebox.showinfo("成功", "等级更新成功")
+                messagebox.showinfo("Success", "Level Updated.")
                 self.show_all_employees()
             except Exception as e:
-                messagebox.showerror("错误", str(e))
+                messagebox.showerror("Error", str(e))
+    # settle both gui and cli
 
+    # 5. finish
     def delete_employee_gui(self):
-        ssn = simpledialog.askstring("删除员工", "员工 SSN:")
+        ssn = simpledialog.askstring("Delete", "Employee Ssn:")
         if ssn:
-            if messagebox.askyesno("确认", f"确定删除 SSN 为 {ssn} 的员工？"):
+            if messagebox.askyesno("Confirm", f"Sure to delete employee {ssn} ?"):
                 try:
                     self.service.delete_employee(ssn)
-                    messagebox.showinfo("成功", "员工已删除")
+                    messagebox.showinfo("Success", "Employee deleted")
                     self.show_all_employees()
                 except Exception as e:
-                    messagebox.showerror("错误", str(e))
+                    messagebox.showerror("Error", str(e))
+    # settle both gui and cli
 
-    # ---------- 活动管理（简化示例）----------
+    # ------ Below are functions for "Activity" section ------
     def create_activity_tab(self):
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="活动管理")
+        self.notebook.add(frame, text="Activity Manage")
 
-        ttk.Button(frame, text="查看所有活动", command=self.show_all_activities).pack(pady=5)
-        self.act_tree = ttk.Treeview(frame, columns=("Time", "Bldg", "Floor", "Room", "Type"), show="headings")
-        for col in self.act_tree["columns"]:
-            self.act_tree.heading(col, text=col)
+        btn_frame = ttk.Frame(frame)
+        btn_frame.pack(pady=5)
+
+        ttk.Button(btn_frame, text="Show all", command=self.show_all_activities).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Create new", command=self.create_activity_gui).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Assign", command=self.assign_activity_gui).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Remove", command=self.remove_activity_gui).pack(side=tk.LEFT, padx=5)
+
+        self.act_tree = ttk.Treeview(frame, columns=("Time", "Type", "Chemical Required", "Building", "Floor", "Room"),
+                                     show="headings")
+        self.act_tree.heading("Time", text="time")
+        self.act_tree.heading("Type", text="type")
+        self.act_tree.heading("Chemical Required", text="chemical")
+        self.act_tree.heading("Building", text="building")
+        self.act_tree.heading("Floor", text="floor")
+        self.act_tree.heading("Room", text="room")
         self.act_tree.pack(fill=tk.BOTH, expand=True, pady=5)
 
+    # 1. finish
     def show_all_activities(self):
         try:
             self.clear_tree(self.act_tree)
-            acts = self.service.get_all_activities()
-            for a in acts:
-                # 假设返回 (time, bldg, floor, room, type)
-                self.act_tree.insert("", "end", values=a[:5])
-            self.update_status(f"加载 {len(acts)} 项活动")
+            activities = self.service.get_all_activities()
+            for activity in activities:
+                values = (
+                    activity.get('Activity_Time', ''),
+                    activity.get('Activity_Type', ''),
+                    activity.get('Require_Chemical', ''),
+                    activity.get('Activity_Building', ''),
+                    activity.get('Activity_Floor', ''),
+                    activity.get('Activity_RoomNum', '')
+                )
+                self.act_tree.insert("", "end", values=values)
+            self.update_status(f"load {len(activities)} activities")
         except Exception as e:
-            messagebox.showerror("错误", str(e))
+            messagebox.showerror("Error", str(e))
+    # settle both gui and cli
+
+    # 2. finish
+    def create_activity_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("create new activities")
+        dialog.geometry("500x350") # size changed
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+        dialog.focus_set()
+
+        # time
+        ttk.Label(dialog, text="time:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=0, column=1, padx=10, pady=10)
+
+        # type
+        ttk.Label(dialog, text="type:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        type_var = tk.StringVar()
+        type_combo = ttk.Combobox(
+            dialog,
+            textvariable=type_var,
+            values=["daily campus cleaning", "campus ageing", "weather-related issues"],
+            state="readonly",
+            width=27
+        )
+        type_combo.grid(row=1, column=1, padx=10, pady=10)
+
+        # chemical needed
+        ttk.Label(dialog, text="chemical needed:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        chemical_var = tk.StringVar()
+        chemical_combo = ttk.Combobox(
+            dialog,
+            textvariable=chemical_var,
+            values=["yes", "no"],
+            state="readonly",
+            width=27
+        )
+        chemical_combo.grid(row=2, column=1, padx=10, pady=10)
+        chemical_combo.set("no")
+
+        # building
+        ttk.Label(dialog, text="building:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # floor
+        ttk.Label(dialog, text="floor:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        # room
+        ttk.Label(dialog, text="room:").grid(row=5, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=5, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=6, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            time = time_var.get().strip()
+            activity_type = type_var.get().strip()
+            if chemical_var.get().strip() == 'yes':
+                chemical = 1
+            else:
+                chemical = 0
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([time, activity_type, chemical, building, floor, room]):
+                messagebox.showwarning("Input Error", "All blanks need to be filled.", parent=dialog)
+                return
+
+            try:
+                self.service.create_activity(time, activity_type, chemical, building, floor, room)
+                messagebox.showinfo("Success", "Success creation.", parent=dialog)
+                self.show_all_activities()
+                dialog.destroy()
+            except ValueError as e:
+                messagebox.showwarning("Set fail.", str(e), parent=dialog)
+            except Exception as e:
+                messagebox.showerror("System Error.", str(e), parent=dialog)
+
+        def on_cancel():
+            dialog.destroy()
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=on_cancel).pack(side=tk.LEFT, padx=10)
+
+        time_entry.focus()
+    # settle both gui and cli
+
+    def create_activity_gui(self):
+        self.create_activity_dialog()
+
+    def assign_activity_gui(self):
+        type_dialog = tk.Toplevel(self.root)
+        type_dialog.title("assign activity")
+        type_dialog.geometry("500x200")
+        type_dialog.resizable(False, False)
+        type_dialog.transient(self.root)
+        type_dialog.grab_set()
+
+        ttk.Label(type_dialog, text="choose type:").pack(pady=10)
+
+        assign_type = tk.StringVar()
+        type_combo = ttk.Combobox(
+            type_dialog,
+            textvariable=assign_type,
+            values=["mid_level manager", "employee", "temp_employee"],
+            state="readonly",
+            width=20
+        )
+        type_combo.pack(pady=10)
+        type_combo.set("mid_level manager")
+
+        def on_type_selected():
+            type_dialog.destroy()
+            worker_type = assign_type.get()
+
+            if worker_type == "mid_level manager":
+                self.assign_manager_dialog()
+            elif worker_type == "employee":
+                self.assign_employee_dialog()
+            elif worker_type == "temp_employee":
+                self.assign_temp_employee_dialog()
+
+        ttk.Button(type_dialog, text="next step", command=on_type_selected).pack(pady=10)
+
+    def assign_manager_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("assign mid_level manager")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        try:
+            managers = self.service.get_employees_by_level("mid_level manager")
+            manager_ssns = [manager.get('Ssn', '') for manager in managers]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+
+        ttk.Label(dialog, text="manager Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=manager_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            try:
+                self.service.assign_manager_to_activity(ssn, time, building, floor, room)
+                messagebox.showinfo("success", "Set successfully.", parent=dialog)
+                dialog.destroy()
+            except ValueError as e:
+                messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
+
+    def assign_employee_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("assign base employee")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 获取所有普通员工
+        try:
+            employees = self.service.get_employees_by_level("base_level worker")
+            employee_ssns = [emp.get('Ssn', '') for emp in employees]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+        # SSN选择
+        ttk.Label(dialog, text="employee Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=employee_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+        # 活动时间
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 楼栋
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        # 楼层
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # 房间
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            try:
+                self.service.assign_employee_to_activity(time, building, floor, room, ssn)
+                messagebox.showinfo("Success", "Assign successfully.", parent=dialog)
+                dialog.destroy()
+            except ValueError as e:
+                messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
+
+    def assign_temp_employee_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("assign temp employee")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 获取所有临时工
+        try:
+            temp_employees = self.service.get_all_temp_employees_with_companies()
+            temp_ssns = [temp.get('TempSsn', '') for temp in temp_employees]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+        # SSN选择
+        ttk.Label(dialog, text="temp employee Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=temp_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+        # 活动时间
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 楼栋
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        # 楼层
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # 房间
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            try:
+                self.service.assign_temp_employee_to_activity(time, building, floor, room, ssn)
+                messagebox.showinfo("Success", "Assign successfully.", parent=dialog)
+                dialog.destroy()
+            except Exception as e:
+                messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
+
+    def remove_activity_gui(self):
+        # 第一步：选择移除类型
+        type_dialog = tk.Toplevel(self.root)
+        type_dialog.title("remove activities")
+        type_dialog.geometry("500x200")
+        type_dialog.resizable(False, False)
+        type_dialog.transient(self.root)
+        type_dialog.grab_set()
+
+        ttk.Label(type_dialog, text="choose type:").pack(pady=10)
+
+        remove_type = tk.StringVar()
+        type_combo = ttk.Combobox(
+            type_dialog,
+            textvariable=remove_type,
+            values=["mid_level manager", "employee", "temp_employee"],
+            state="readonly",
+            width=20
+        )
+        type_combo.pack(pady=10)
+        type_combo.set("mid_level manager")
+
+        def on_type_selected():
+            type_dialog.destroy()
+            worker_type = remove_type.get()
+
+            if worker_type == "mid_level manager":
+                self.remove_manager_dialog()
+            elif worker_type == "employee":
+                self.remove_employee_dialog()
+            elif worker_type == "temp_employee":
+                self.remove_temp_employee_dialog()
+
+        ttk.Button(type_dialog, text="next type", command=on_type_selected).pack(pady=10)
+
+    def remove_manager_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("remove mid_level manager")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 获取所有中层经理
+        try:
+            managers = self.service.get_employees_by_level("mid_level manager")
+            manager_ssns = [manager.get('Ssn', '') for manager in managers]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+        # SSN选择
+        ttk.Label(dialog, text="manager Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=manager_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+        # 活动时间
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 楼栋
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        # 楼层
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # 房间
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            if messagebox.askyesno("confirm", f"confirm removing {ssn} ?", parent=dialog):
+                try:
+                    self.service.remove_manager_from_activity(ssn, time, building, floor, room)
+                    messagebox.showinfo("Success", "remove successfully", parent=dialog)
+                    dialog.destroy()
+                except Exception as e:
+                    messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
+
+    def remove_employee_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("remove base level employee")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 获取所有普通员工
+        try:
+            employees = self.service.get_employees_by_level("base_level worker")
+            employee_ssns = [emp.get('Ssn', '') for emp in employees]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+        # SSN选择
+        ttk.Label(dialog, text="employee Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=employee_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+        # 活动时间
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 楼栋
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        # 楼层
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # 房间
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            if messagebox.askyesno("confirm", f"confirm removing {ssn} ?", parent=dialog):
+                try:
+                    self.service.remove_employee_from_activity(time, building, floor, room, ssn)
+                    messagebox.showinfo("Success", "remove successfully", parent=dialog)
+                    dialog.destroy()
+                except Exception as e:
+                    messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
+
+    def remove_temp_employee_dialog(self):
+        dialog = tk.Toplevel(self.root)
+        dialog.title("remove temp employee")
+        dialog.geometry("500x300")
+        dialog.resizable(False, False)
+        dialog.transient(self.root)
+        dialog.grab_set()
+
+        # 获取所有临时工
+        try:
+            temp_employees = self.service.get_all_temp_employees_with_companies()
+            temp_ssns = [temp.get('TempSsn', '') for temp in temp_employees]
+        except Exception as e:
+            messagebox.showerror("Error", f"fetch failed: {str(e)}", parent=dialog)
+            dialog.destroy()
+            return
+
+        # SSN选择
+        ttk.Label(dialog, text="temp Ssn:").grid(row=0, column=0, padx=10, pady=10, sticky=tk.W)
+        ssn_var = tk.StringVar()
+        ssn_combo = ttk.Combobox(dialog, textvariable=ssn_var, values=temp_ssns, state="readonly", width=30)
+        ssn_combo.grid(row=0, column=1, padx=10, pady=10)
+
+        # 活动时间
+        ttk.Label(dialog, text="time:").grid(row=1, column=0, padx=10, pady=10, sticky=tk.W)
+        time_var = tk.StringVar()
+        time_entry = ttk.Entry(dialog, textvariable=time_var, width=30)
+        time_entry.grid(row=1, column=1, padx=10, pady=10)
+
+        # 楼栋
+        ttk.Label(dialog, text="building:").grid(row=2, column=0, padx=10, pady=10, sticky=tk.W)
+        building_var = tk.StringVar()
+        building_entry = ttk.Entry(dialog, textvariable=building_var, width=30)
+        building_entry.grid(row=2, column=1, padx=10, pady=10)
+
+        # 楼层
+        ttk.Label(dialog, text="floor:").grid(row=3, column=0, padx=10, pady=10, sticky=tk.W)
+        floor_var = tk.StringVar()
+        floor_entry = ttk.Entry(dialog, textvariable=floor_var, width=30)
+        floor_entry.grid(row=3, column=1, padx=10, pady=10)
+
+        # 房间
+        ttk.Label(dialog, text="room:").grid(row=4, column=0, padx=10, pady=10, sticky=tk.W)
+        room_var = tk.StringVar()
+        room_entry = ttk.Entry(dialog, textvariable=room_var, width=30)
+        room_entry.grid(row=4, column=1, padx=10, pady=10)
+
+        button_frame = ttk.Frame(dialog)
+        button_frame.grid(row=5, column=0, columnspan=2, pady=15)
+
+        def on_submit():
+            ssn = ssn_var.get().strip()
+            time = time_var.get().strip()
+            building = building_var.get().strip()
+            floor = floor_var.get().strip()
+            room = room_var.get().strip()
+
+            if not all([ssn, time, building, floor, room]):
+                messagebox.showwarning("Error", "Blank lines!", parent=dialog)
+                return
+
+            if messagebox.askyesno("confirm", f"confirm removing {ssn} ?", parent=dialog):
+                try:
+                    self.service.remove_temp_employee_from_activity(time, building, floor, room, ssn)
+                    messagebox.showinfo("Success", "remove successfully", parent=dialog)
+                    dialog.destroy()
+                except Exception as e:
+                    messagebox.showerror("Error", str(e), parent=dialog)
+
+        ttk.Button(button_frame, text="Confirm", command=on_submit).pack(side=tk.LEFT, padx=10)
+        ttk.Button(button_frame, text="Cancel", command=dialog.destroy).pack(side=tk.LEFT, padx=10)
 
     # ---------- 临时工管理 ----------
     def create_temp_employee_tab(self):
