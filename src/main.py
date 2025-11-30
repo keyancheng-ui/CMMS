@@ -1,5 +1,5 @@
 import tkinter as tk
-from db import initialize_database
+from src.db import initialize_database
 from ui.general_gui import QuickQueryGUI
 
 from logic.general_service import Service

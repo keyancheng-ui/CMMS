@@ -49,7 +49,7 @@ class QuickQueryGUI:
 
         ttk.Button(btn_frame, text="Search All", command=self.show_all_employees).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Search by SSN", command=self.lookup_employee_by_ssn).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="Update EMP", command=self.add_employee_gui).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Insert EMP", command=self.add_employee_gui).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Update level", command=self.update_employee_level_gui).pack(side=tk.LEFT, padx=5)
         ttk.Button(btn_frame, text="Delete EMP", command=self.delete_employee_gui).pack(side=tk.LEFT, padx=5)
 
@@ -1001,25 +1001,25 @@ class QuickQueryGUI:
     # ---------- 位置管理 ----------------------------------------------------------------------------------------------------------------------------------------------
     def create_location_tab(self):
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="位置管理")
+        self.notebook.add(frame, text="Location management")
 
         # 功能按钮区（顶部）
         btn_frame = ttk.Frame(frame)
         btn_frame.pack(pady=5, fill=tk.X)
 
-        ttk.Button(btn_frame, text="查看所有位置", command=self.show_all_locations).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="添加新位置", command=self.add_new_location).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="查看空闲办公室", command=self.show_vacant_offices).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="查看所有办公室", command=self.show_all_offices).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="按建筑筛选", command=self.filter_locations_by_building).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="分配办公室", command=self.assign_office_gui).pack(side=tk.LEFT, padx=5)
-        ttk.Button(btn_frame, text="清退办公室", command=self.vacate_office_gui).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="View All Locations", command=self.show_all_locations).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Add New Location", command=self.add_new_location).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="View Vacant Offices", command=self.show_vacant_offices).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="View All Offices", command=self.show_all_offices).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Filter by Building", command=self.filter_locations_by_building).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Assign Office", command=self.assign_office_gui).pack(side=tk.LEFT, padx=5)
+        ttk.Button(btn_frame, text="Vacate Office", command=self.vacate_office_gui).pack(side=tk.LEFT, padx=5)
 
         # 数据显示区（Treeview）
         self.loc_tree = ttk.Treeview(frame, columns=("Bldg", "Floor", "Room"), show="headings")
-        self.loc_tree.heading("Bldg", text="楼")
-        self.loc_tree.heading("Floor", text="层")
-        self.loc_tree.heading("Room", text="房间")
+        self.loc_tree.heading("Bldg", text="building")
+        self.loc_tree.heading("Floor", text="floor")
+        self.loc_tree.heading("Room", text="room number")
         self.loc_tree.column("Bldg", width=150)
         self.loc_tree.column("Floor", width=80, anchor=tk.CENTER)
         self.loc_tree.column("Room", width=80, anchor=tk.CENTER)
@@ -1032,33 +1032,33 @@ class QuickQueryGUI:
 
     # 新增：添加新位置
     def add_new_location(self):
-        building = simpledialog.askstring("添加位置", "建筑名称:", parent=self.root)
+        building = simpledialog.askstring("insert location", "building name:", parent=self.root)
         if not building:
             return
         try:
-            floor = simpledialog.askinteger("添加位置", "楼层（整数）:", parent=self.root)
-            room = simpledialog.askinteger("添加位置", "房间号（整数）:", parent=self.root)
+            floor = simpledialog.askinteger("insert location", "floor(integer):", parent=self.root)
+            room = simpledialog.askinteger("insert location", "room number(integer):", parent=self.root)
             if floor is None or room is None:
                 return
             # 调用 service 方法（假设你已有 create_location）
             self.service.create_location(building, floor, room)
-            messagebox.showinfo("成功", f"位置 {building} {floor}层-{room} 已添加", parent=self.root)
+            messagebox.showinfo("succeeded", f"location {building} {floor}floor-{room} inserted", parent=self.root)
             self.show_all_locations()  # 自动刷新
         except ValueError:
-            messagebox.showerror("输入错误", "楼层和房间号必须为整数", parent=self.root)
+            messagebox.showerror("input error", "floor and room number must be integer", parent=self.root)
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
     # 新增：按建筑筛选
     def filter_locations_by_building(self):
-        building = simpledialog.askstring("筛选位置", "请输入建筑名称:", parent=self.root)
+        building = simpledialog.askstring("location filter", "Please input building name", parent=self.root)
         if not building:
             return
         try:
             self.clear_tree(self.loc_tree)
             locs = self.service.get_locations_by_building(building)  # 假设你已有此方法
             if not locs:
-                messagebox.showinfo("提示", f"建筑 '{building}' 下无位置记录", parent=self.root)
+                messagebox.showinfo("warning:", f"building '{building}' doesn't have this place", parent=self.root)
             for l in locs:
                 # 假设 locs 中每个元素是 (Building, Floor, Room_number) 元组或字典
                 if isinstance(l, dict):
@@ -1066,9 +1066,9 @@ class QuickQueryGUI:
                 else:
                     values = l  # 假设是元组
                 self.loc_tree.insert("", "end", values=values)
-            self.update_status(f"已筛选 {len(locs)} 条记录")
+            self.update_status(f"selected {len(locs)} records")
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
     # 保留你已有的方法（此处仅示意，你已有）
     def show_all_locations(self):
@@ -1082,7 +1082,7 @@ class QuickQueryGUI:
                     values = l
                 self.loc_tree.insert("", "end", values=values)
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
     def show_vacant_offices(self):
         try:
@@ -1095,54 +1095,54 @@ class QuickQueryGUI:
                     values = l
                 self.loc_tree.insert("", "end", values=values)
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
     def assign_office_gui(self):
         # 输入办公室信息
-        building = simpledialog.askstring("分配办公室", "建筑:", parent=self.root)
+        building = simpledialog.askstring("assign office", "building:", parent=self.root)
         if not building:
             return
         try:
-            floor = simpledialog.askinteger("分配办公室", "楼层（整数）:", parent=self.root)
-            room = simpledialog.askinteger("分配办公室", "房间号（整数）:", parent=self.root)
+            floor = simpledialog.askinteger("assign office", "floor(integer):", parent=self.root)
+            room = simpledialog.askinteger("assign office", "room number(integer):", parent=self.root)
             if floor is None or room is None:
                 return
             # 输入员工 SSN
-            ssn = simpledialog.askstring("分配办公室", "员工 SSN:", parent=self.root)
+            ssn = simpledialog.askstring("assign office", "employee SSN:", parent=self.root)
             if not ssn:
                 return
 
             # 调用 service 方法
             result = self.service.assign_office_to_employee(building, floor, room, ssn)
             if result == "The employee has an office.":
-                messagebox.showwarning("分配失败", "该员工已分配办公室！", parent=self.root)
+                messagebox.showwarning("assignment failed", "He/she already has office！", parent=self.root)
             elif result == "Not valid!":
-                messagebox.showerror("输入错误", "楼层或房间号格式无效！", parent=self.root)
+                messagebox.showerror("input invalid", "floor/room number invalid！", parent=self.root)
             else:
-                messagebox.showinfo("成功", f"办公室 {building} {floor}-{room} 已分配给 {ssn}", parent=self.root)
+                messagebox.showinfo("succeeded", f"office {building} {floor}-{room} assigned to employee{ssn} ", parent=self.root)
                 self.show_vacant_offices()  # 自动刷新空闲列表
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
 
     def vacate_office_gui(self):
-        building = simpledialog.askstring("清退办公室", "建筑:", parent=self.root)
+        building = simpledialog.askstring("vacate office", "building:", parent=self.root)
         if not building:
             return
         try:
-            floor = simpledialog.askinteger("清退办公室", "楼层（整数）:", parent=self.root)
-            room = simpledialog.askinteger("清退办公室", "房间号（整数）:", parent=self.root)
+            floor = simpledialog.askinteger("vacate office", "floor(integer):", parent=self.root)
+            room = simpledialog.askinteger("vacate office", "room_number(integer):", parent=self.root)
             if floor is None or room is None:
                 return
 
             result = self.service.vacate_office(building, floor, room)
             if result == "Not valid.":
-                messagebox.showerror("输入错误", "楼层或房间号格式无效！", parent=self.root)
+                messagebox.showerror("input error", "floor/room number invalid！", parent=self.root)
             else:
-                messagebox.showinfo("成功", f"办公室 {building} {floor}-{room} 已清退", parent=self.root)
+                messagebox.showinfo("succeeded", f"office {building} {floor}-{room} vacated", parent=self.root)
                 self.show_vacant_offices()  # 刷新空闲列表
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
     def show_all_offices(self):
         try:
@@ -1161,7 +1161,7 @@ class QuickQueryGUI:
                     values = (row[1], row[2], row[3])  # 跳过 OwnerSsn
                 self.loc_tree.insert("", "end", values=values)
         except Exception as e:
-            messagebox.showerror("错误", str(e), parent=self.root)
+            messagebox.showerror("error", str(e), parent=self.root)
 
 
 
@@ -1826,13 +1826,13 @@ class QuickQueryGUI:
     # ---------- 自定义 SQL ----------
     def create_sql_tab(self):
         frame = ttk.Frame(self.notebook)
-        self.notebook.add(frame, text="自定义 SQL")
+        self.notebook.add(frame, text="self-defined SQL query")
 
-        ttk.Label(frame, text="输入 SQL 语句：").pack(anchor=tk.W, padx=5)
+        ttk.Label(frame, text="Please input SQL query：").pack(anchor=tk.W, padx=5)
         self.sql_text = scrolledtext.ScrolledText(frame, height=5)
         self.sql_text.pack(fill=tk.X, padx=5, pady=5)
 
-        run_btn = ttk.Button(frame, text="执行查询", command=self.run_custom_sql)
+        run_btn = ttk.Button(frame, text="conduct query", command=self.run_custom_sql)
         run_btn.pack(pady=5)
 
         self.sql_result = scrolledtext.ScrolledText(frame, height=10, state=tk.DISABLED)
@@ -1841,7 +1841,7 @@ class QuickQueryGUI:
     def run_custom_sql(self):
         sql = self.sql_text.get("1.0", tk.END).strip()
         if not sql:
-            messagebox.showwarning("警告", "请输入 SQL 语句")
+            messagebox.showwarning("warning", "please input SQL query")
             return
         try:
             result = self.service.execute_custom_sql(sql)
@@ -1853,10 +1853,10 @@ class QuickQueryGUI:
             else:
                 self.sql_result.insert(tk.END, str(result))
             self.sql_result.config(state=tk.DISABLED)
-            self.update_status("SQL 执行成功")
+            self.update_status("SQL succeeded")
         except Exception as e:
             messagebox.showerror("SQL 错误", str(e))
-            self.update_status("SQL 执行失败")
+            self.update_status("SQL failed")
 
     # ---------- 关闭处理 ----------
     def on_closing(self):

@@ -476,9 +476,13 @@ class QuickQueryDAO(BaseDAO):
             return "Not valid!"
 
         if floor_valid and room_valid:
+
+
+
             result = self.execute_query(
                 f"SELECT * FROM Office WHERE OwnerSsn = '{owner_ssn}'"
             )
+
             if len(result) == 0:
                 self.execute_query(
                     f"UPDATE Office SET OwnerSsn = '{owner_ssn}' "
