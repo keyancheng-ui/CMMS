@@ -1,5 +1,8 @@
 USE appdb;
 
+
+
+
 -- 1. Location (主键: Building, Floor, Room_number)
 INSERT INTO Location (Building, Floor, Room_number)
 SELECT * FROM (
@@ -39,7 +42,8 @@ SELECT * FROM (
     ROW('9', '钱十一', 'base_level worker'),
     ROW('10', '冯十二', 'executive officer'),
     ROW('11', '陈十三', 'base_level worker'),
-    ROW('12', '褚十四', 'base_level worker')
+    ROW('12', '褚十四', 'base_level worker'),
+    ROW('99999', '褚十四', 'base_level worker')
 ) AS new_vals (Ssn, Name, Emp_Level)
 WHERE NOT EXISTS (
     SELECT 1 FROM Employee e WHERE e.Ssn = new_vals.Ssn

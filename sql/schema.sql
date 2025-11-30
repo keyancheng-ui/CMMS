@@ -1,23 +1,36 @@
 CREATE DATABASE IF NOT EXISTS appdb;
 USE appdb;
 
+-- 1. 删除整个数据库（会删除所有表和数据！）
+-- DROP DATABASE IF EXISTS appdb;
+
+-- 2. 重新创建数据库
+-- CREATE DATABASE appdb;
+
+-- 3. 使用数据库
+-- USE appdb;
+
+
+
+
+
 CREATE TABLE IF NOT EXISTS Employee (
   Ssn CHAR(20) PRIMARY KEY,
   Name VARCHAR(100) NOT NULL,
   Emp_Level ENUM('executive officer', 'mid_level manager', 'base_level worker') NOT NULL
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Temporary_Employee (
   TempSsn CHAR(20) PRIMARY KEY,
   Company_name VARCHAR(100) NOT NULL
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Location (
   Building CHAR(20) NOT NULL,
   Floor INT NOT NULL,
   Room_number INT NOT NULL,
   PRIMARY KEY (Building, Floor, Room_number)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Office (
   OwnerSsn CHAR(20) NULL,
@@ -36,7 +49,7 @@ CREATE TABLE IF NOT EXISTS Office (
   ON DELETE CASCADE,
 
   PRIMARY KEY (Office_Building, Office_Floor, Office_RoomNum)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Employee_Supervision (
   Supervisor_Ssn CHAR(20) NOT NULL,
@@ -44,16 +57,16 @@ CREATE TABLE IF NOT EXISTS Employee_Supervision (
 
   CONSTRAINT fk_supervisor_relation FOREIGN KEY (Supervisor_Ssn)
   REFERENCES Employee(Ssn)
-  ON UPDATE CASCADE
-  ON DELETE CASCADE,
+  ON DELETE CASCADE
+  ON UPDATE CASCADE,
 
   CONSTRAINT fk_supervisee_relation FOREIGN KEY (Supervisee_Ssn)
   REFERENCES Employee(Ssn)
-  ON UPDATE CASCADE
-  ON DELETE CASCADE,
+  ON DELETE CASCADE
+  ON UPDATE CASCADE,
 
   PRIMARY KEY (Supervisor_Ssn, Supervisee_Ssn)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS TempSupervise (
   Supervisor_Ssn_midlevel_manager CHAR(20) NOT NULL,
@@ -70,7 +83,7 @@ CREATE TABLE IF NOT EXISTS TempSupervise (
   ON DELETE CASCADE,
 
   PRIMARY KEY (Supervisor_Ssn_midlevel_manager, Supervisee_Ssn_temp_employee)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Contractor_Company (
   Temp_Employee_Ssn CHAR(20) PRIMARY KEY,
@@ -80,7 +93,7 @@ CREATE TABLE IF NOT EXISTS Contractor_Company (
   REFERENCES Temporary_Employee(TempSsn)
   ON UPDATE CASCADE
   ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Activity (
   Activity_Time DATE NOT NULL,
@@ -96,7 +109,7 @@ CREATE TABLE IF NOT EXISTS Activity (
   ON DELETE CASCADE,
 
   PRIMARY KEY (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   Manager_Ssn CHAR(20) NOT NULL,
@@ -116,7 +129,7 @@ CREATE TABLE IF NOT EXISTS Mid_Level_Manage_Activity (
   ON DELETE CASCADE,
 
   PRIMARY KEY (Manage_Activity_Time, Manage_Activity_Building, Manage_Activity_Floor, Manage_Activity_RoomNum)
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Employee_Work_On (
   Working_Time DATE NOT NULL,
@@ -136,7 +149,7 @@ CREATE TABLE IF NOT EXISTS Employee_Work_On (
   REFERENCES Employee (Ssn)
   ON UPDATE CASCADE
   ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Temp_Employee_Work_On (
   Temp_Working_Time DATE NOT NULL,
@@ -156,7 +169,7 @@ CREATE TABLE IF NOT EXISTS Temp_Employee_Work_On (
   REFERENCES Temporary_Employee (TempSsn)
   ON UPDATE CASCADE
   ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
 
 CREATE TABLE IF NOT EXISTS Applied_To (
   Applied_Time DATE NOT NULL,
@@ -171,4 +184,4 @@ CREATE TABLE IF NOT EXISTS Applied_To (
   REFERENCES Activity (Activity_Time, Activity_Building, Activity_Floor, Activity_RoomNum)
   ON UPDATE CASCADE
   ON DELETE CASCADE
-);
+) ENGINE=InnoDB;
